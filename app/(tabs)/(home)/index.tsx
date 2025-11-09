@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform } from 're
 import { Stack, useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
+import { useSettings } from '@/hooks/useSettings';
 import SummaryCard from '@/components/SummaryCard';
 import LoanCard from '@/components/LoanCard';
 import FloatingActionButton from '@/components/FloatingActionButton';
@@ -11,6 +12,7 @@ import FloatingActionButton from '@/components/FloatingActionButton';
 export default function DashboardScreen() {
   const router = useRouter();
   const { loans, payments, loading, getLoanSummary, getPaymentsForLoan } = useLoans();
+  const { settings } = useSettings();
   const [refreshing, setRefreshing] = useState(false);
   const summary = getLoanSummary();
 
@@ -53,12 +55,14 @@ export default function DashboardScreen() {
                 amount={summary.totalLent}
                 icon="arrow.up.circle.fill"
                 color={colors.primary}
+                currencySymbol={settings.currencySymbol}
               />
               <SummaryCard
                 title="Total Repaid"
                 amount={summary.totalRepaid}
                 icon="arrow.down.circle.fill"
                 color={colors.secondary}
+                currencySymbol={settings.currencySymbol}
               />
             </View>
             <View style={styles.summaryRow}>
@@ -67,12 +71,14 @@ export default function DashboardScreen() {
                 amount={summary.outstandingBalance}
                 icon="exclamationmark.circle.fill"
                 color={colors.accent}
+                currencySymbol={settings.currencySymbol}
               />
               <SummaryCard
                 title="Interest Earned"
                 amount={summary.interestEarned}
                 icon="chart.line.uptrend.xyaxis"
                 color={colors.secondary}
+                currencySymbol={settings.currencySymbol}
               />
             </View>
           </View>
@@ -94,6 +100,7 @@ export default function DashboardScreen() {
                   loan={loan}
                   payments={getPaymentsForLoan(loan.id)}
                   onPress={() => handleLoanPress(loan.id)}
+                  currencySymbol={settings.currencySymbol}
                 />
               ))
             )}

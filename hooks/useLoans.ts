@@ -36,6 +36,7 @@ export function useLoans() {
       status: 'active',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      lastInterestPaymentDate: loan.startDate, // Initialize with start date
     };
     const updatedLoans = [...loans, newLoan];
     setLoans(updatedLoans);
@@ -74,9 +75,16 @@ export function useLoans() {
     setPayments(updatedPayments);
     await savePayments(updatedPayments);
 
+    // Update loan's last interest payment date if it's an interest payment
+    if (payment.type === 'interest') {
+      await updateLoan(payment.loanId, {
+        lastInterestPaymentDate: payment.date,
+      });
+    }
+
     // Update loan status if fully paid
     const loan = loans.find(l => l.id === payment.loanId);
-    if (loan) {
+    if (loan && payment.type === 'principal') {
       const loanPayments = updatedPayments.filter(p => p.loanId === payment.loanId);
       const balance = calculateLoanBalance(loan, loanPayments);
       if (balance <= 0) {
@@ -93,7 +101,9 @@ export function useLoans() {
 
   const getLoanSummary = useCallback((): LoanSummary => {
     const totalLent = loans.reduce((sum, loan) => sum + loan.amount, 0);
-    const totalRepaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const totalRepaid = payments
+      .filter(p => p.type === 'principal')
+      .reduce((sum, payment) => sum + payment.amount, 0);
     const interestEarned = loans.reduce((sum, loan) => {
       return sum + calculateInterest(loan);
     }, 0);
@@ -147,5 +157,6 @@ export function useLoans() {
     getPaymentsForLoan,
     getLoanSummary,
     markAsPaid,
+    refreshData: loadData,
   };
 }

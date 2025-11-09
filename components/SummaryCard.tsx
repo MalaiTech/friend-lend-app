@@ -10,16 +10,17 @@ interface SummaryCardProps {
   amount: number;
   icon: string;
   color: string;
+  currencySymbol?: string;
 }
 
-export default function SummaryCard({ title, amount, icon, color }: SummaryCardProps) {
+export default function SummaryCard({ title, amount, icon, color, currencySymbol = '€' }: SummaryCardProps) {
   return (
     <View style={[commonStyles.card, styles.card]}>
       <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
         <IconSymbol name={icon as any} size={24} color={color} />
       </View>
       <Text style={styles.title}>{title}</Text>
-      <Text style={[styles.amount, { color }]}>{formatCurrency(amount)}</Text>
+      <Text style={[styles.amount, { color }]}>{formatCurrency(amount, currencySymbol)}</Text>
     </View>
   );
 }

@@ -13,12 +13,15 @@ import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
+import { useSettings } from '@/hooks/useSettings';
 import { IconSymbol } from '@/components/IconSymbol';
 import {
   calculateLoanBalance,
   calculateInterest,
   formatCurrency,
   formatDate,
+  getInterestPaymentStatus,
+  calculateMonthlyInterest,
 } from '@/utils/loanCalculations';
 
 export default function LoanDetailScreen() {
@@ -27,6 +30,7 @@ export default function LoanDetailScreen() {
   const loanId = params.id as string;
 
   const { loans, getPaymentsForLoan, markAsPaid, deleteLoan } = useLoans();
+  const { settings } = useSettings();
   const loan = loans.find((l) => l.id === loanId);
   const payments = getPaymentsForLoan(loanId);
 
@@ -40,7 +44,12 @@ export default function LoanDetailScreen() {
 
   const balance = calculateLoanBalance(loan, payments);
   const interest = calculateInterest(loan);
-  const totalRepaid = payments.reduce((sum, p) => sum + p.amount, 0);
+  const principalPayments = payments.filter(p => p.type === 'principal');
+  const interestPayments = payments.filter(p => p.type === 'interest');
+  const totalRepaid = principalPayments.reduce((sum, p) => sum + p.amount, 0);
+  const totalInterestPaid = interestPayments.reduce((sum, p) => sum + p.amount, 0);
+  const interestStatus = getInterestPaymentStatus(loan, payments);
+  const monthlyInterest = calculateMonthlyInterest(loan.amount, loan.interestRate);
 
   const handleAddPayment = () => {
     router.push(`/add-payment?loanId=${loanId}`);
@@ -69,25 +78,20 @@ export default function LoanDetailScreen() {
   };
 
   const handleSendReminder = async () => {
-    const message = `Hi ${loan.borrowerName},\n\nHere's your loan summary:\n• Outstanding: ${formatCurrency(balance)}\n• Interest: ${formatCurrency(interest)}\n• Next Due: ${formatDate(loan.dueDate)}\n\nPlease confirm or make your next payment. Thank you!`;
+    const message = `Hi ${loan.borrowerName},\n\nHere's your loan summary:\n• Outstanding: ${formatCurrency(balance, settings.currencySymbol)}\n• Interest: ${formatCurrency(interest, settings.currencySymbol)}\n• Monthly Interest: ${formatCurrency(monthlyInterest, settings.currencySymbol)}\n• Next Due: ${formatDate(loan.dueDate)}\n\nPlease confirm or make your next payment. Thank you!`;
 
     try {
-      // Check if sharing is available
       const isAvailable = await Sharing.isAvailableAsync();
       
       if (!isAvailable) {
-        // Fallback: Copy to clipboard or show alert
         Alert.alert(
           'Loan Reminder',
           message,
-          [
-            { text: 'OK', style: 'default' }
-          ]
+          [{ text: 'OK', style: 'default' }]
         );
         return;
       }
 
-      // Create a temporary text file to share
       const FileSystem = require('expo-file-system');
       const fileUri = `${FileSystem.cacheDirectory}loan-reminder.txt`;
       
@@ -100,13 +104,10 @@ export default function LoanDetailScreen() {
       
     } catch (error: any) {
       console.error('Error sharing:', error);
-      // Fallback: Show the message in an alert
       Alert.alert(
         'Loan Reminder',
         message,
-        [
-          { text: 'OK', style: 'default' }
-        ]
+        [{ text: 'OK', style: 'default' }]
       );
     }
   };
@@ -182,12 +183,41 @@ export default function LoanDetailScreen() {
             </View>
           </View>
 
+          {/* Interest Warning */}
+          {interestStatus.monthsOverdue > 0 && loan.status !== 'paid' && (
+            <View style={[commonStyles.card, styles.warningCard]}>
+              <View style={styles.warningHeader}>
+                <IconSymbol name="exclamationmark.triangle.fill" size={28} color={colors.error} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.warningTitle}>Interest Payment Overdue!</Text>
+                  <Text style={styles.warningText}>
+                    {interestStatus.monthsOverdue} month{interestStatus.monthsOverdue > 1 ? 's' : ''} unpaid
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.warningAmountContainer}>
+                <Text style={styles.warningLabel}>Amount Due:</Text>
+                <Text style={styles.warningAmount}>
+                  {formatCurrency(interestStatus.amountDue, settings.currencySymbol)}
+                </Text>
+              </View>
+              <Pressable 
+                style={styles.payInterestButton}
+                onPress={handleAddPayment}
+              >
+                <Text style={styles.payInterestButtonText}>Pay Interest Now</Text>
+              </Pressable>
+            </View>
+          )}
+
           {/* Summary Card */}
           <View style={[commonStyles.card, styles.summaryCard]}>
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Loan Amount</Text>
-                <Text style={styles.summaryValue}>{formatCurrency(loan.amount)}</Text>
+                <Text style={styles.summaryValue}>
+                  {formatCurrency(loan.amount, settings.currencySymbol)}
+                </Text>
               </View>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Balance</Text>
@@ -197,7 +227,7 @@ export default function LoanDetailScreen() {
                     { color: balance > 0 ? colors.error : colors.secondary },
                   ]}
                 >
-                  {formatCurrency(balance)}
+                  {formatCurrency(balance, settings.currencySymbol)}
                 </Text>
               </View>
             </View>
@@ -206,13 +236,32 @@ export default function LoanDetailScreen() {
 
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Interest</Text>
-                <Text style={styles.summaryValue}>{formatCurrency(interest)}</Text>
+                <Text style={styles.summaryLabel}>Total Interest</Text>
+                <Text style={styles.summaryValue}>
+                  {formatCurrency(interest, settings.currencySymbol)}
+                </Text>
               </View>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Total Repaid</Text>
+                <Text style={styles.summaryLabel}>Principal Repaid</Text>
                 <Text style={[styles.summaryValue, { color: colors.secondary }]}>
-                  {formatCurrency(totalRepaid)}
+                  {formatCurrency(totalRepaid, settings.currencySymbol)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={commonStyles.divider} />
+
+            <View style={styles.summaryRow}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Monthly Interest</Text>
+                <Text style={styles.summaryValue}>
+                  {formatCurrency(monthlyInterest, settings.currencySymbol)}
+                </Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Interest Paid</Text>
+                <Text style={[styles.summaryValue, { color: colors.secondary }]}>
+                  {formatCurrency(totalInterestPaid, settings.currencySymbol)}
                 </Text>
               </View>
             </View>
@@ -224,7 +273,7 @@ export default function LoanDetailScreen() {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Interest Rate</Text>
               <Text style={styles.detailValue}>
-                {loan.interestRate}% ({loan.interestType})
+                {loan.interestRate}% monthly ({loan.interestType})
               </Text>
             </View>
             <View style={styles.detailRow}>
@@ -235,6 +284,14 @@ export default function LoanDetailScreen() {
               <Text style={styles.detailLabel}>Due Date</Text>
               <Text style={styles.detailValue}>{formatDate(loan.dueDate)}</Text>
             </View>
+            {loan.lastInterestPaymentDate && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Last Interest Payment</Text>
+                <Text style={styles.detailValue}>
+                  {formatDate(loan.lastInterestPaymentDate)}
+                </Text>
+              </View>
+            )}
             {loan.notes && (
               <>
                 <View style={commonStyles.divider} />
@@ -250,24 +307,55 @@ export default function LoanDetailScreen() {
             {payments.length === 0 ? (
               <Text style={styles.emptyText}>No payments yet</Text>
             ) : (
-              payments.map((payment) => (
-                <View key={payment.id} style={styles.paymentItem}>
-                  <View>
-                    <Text style={styles.paymentAmount}>
-                      {formatCurrency(payment.amount)}
-                    </Text>
-                    <Text style={styles.paymentDate}>{formatDate(payment.date)}</Text>
-                    {payment.note && (
-                      <Text style={styles.paymentNote}>{payment.note}</Text>
-                    )}
-                  </View>
-                  <IconSymbol
-                    name="checkmark.circle.fill"
-                    size={24}
-                    color={colors.secondary}
-                  />
-                </View>
-              ))
+              <>
+                {principalPayments.length > 0 && (
+                  <>
+                    <Text style={styles.paymentTypeHeader}>Principal Payments</Text>
+                    {principalPayments.map((payment) => (
+                      <View key={payment.id} style={styles.paymentItem}>
+                        <View>
+                          <Text style={styles.paymentAmount}>
+                            {formatCurrency(payment.amount, settings.currencySymbol)}
+                          </Text>
+                          <Text style={styles.paymentDate}>{formatDate(payment.date)}</Text>
+                          {payment.note && (
+                            <Text style={styles.paymentNote}>{payment.note}</Text>
+                          )}
+                        </View>
+                        <IconSymbol
+                          name="checkmark.circle.fill"
+                          size={24}
+                          color={colors.secondary}
+                        />
+                      </View>
+                    ))}
+                  </>
+                )}
+                
+                {interestPayments.length > 0 && (
+                  <>
+                    <Text style={styles.paymentTypeHeader}>Interest Payments</Text>
+                    {interestPayments.map((payment) => (
+                      <View key={payment.id} style={styles.paymentItem}>
+                        <View>
+                          <Text style={styles.paymentAmount}>
+                            {formatCurrency(payment.amount, settings.currencySymbol)}
+                          </Text>
+                          <Text style={styles.paymentDate}>{formatDate(payment.date)}</Text>
+                          {payment.note && (
+                            <Text style={styles.paymentNote}>{payment.note}</Text>
+                          )}
+                        </View>
+                        <IconSymbol
+                          name="percent"
+                          size={24}
+                          color={colors.accent}
+                        />
+                      </View>
+                    ))}
+                  </>
+                )}
+              </>
             )}
           </View>
 
@@ -324,6 +412,55 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1,
   },
+  warningCard: {
+    marginBottom: 16,
+    backgroundColor: colors.error + '10',
+    borderWidth: 2,
+    borderColor: colors.error + '40',
+  },
+  warningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  warningTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.error,
+  },
+  warningText: {
+    fontSize: 14,
+    color: colors.text,
+    marginTop: 2,
+  },
+  warningAmountContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  warningLabel: {
+    fontSize: 15,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  warningAmount: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.error,
+  },
+  payInterestButton: {
+    backgroundColor: colors.error,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  payInterestButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
   summaryCard: {
     marginBottom: 16,
   },
@@ -340,7 +477,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   summaryValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: colors.text,
   },
@@ -376,6 +513,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     paddingVertical: 20,
+  },
+  paymentTypeHeader: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 12,
+    marginBottom: 8,
   },
   paymentItem: {
     flexDirection: 'row',

@@ -1,13 +1,19 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { clearAllData } from '@/utils/storage';
+import { clearAllData, getAllData } from '@/utils/storage';
+import { useSettings } from '@/hooks/useSettings';
+import { useLoans } from '@/hooks/useLoans';
+import { getCurrencyByCode } from '@/utils/currencies';
 
 export default function SettingsScreen() {
+  const router = useRouter();
+  const { settings, updateLastBackupDate } = useSettings();
+  const { refreshData } = useLoans();
   const [biometricAvailable, setBiometricAvailable] = React.useState(false);
 
   React.useEffect(() => {
@@ -38,6 +44,37 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleCurrencySettings = () => {
+    router.push('/currency-selector');
+  };
+
+  const handleCloudBackup = () => {
+    Alert.alert(
+      'Cloud Backup',
+      'To enable cloud backup, please enable Supabase by pressing the Supabase button in the Natively interface and connecting to a project.\n\nOnce connected, your data will be automatically backed up to the cloud.',
+      [
+        { text: 'OK', style: 'default' }
+      ]
+    );
+  };
+
+  const handleExportData = async () => {
+    try {
+      const data = await getAllData();
+      const dataString = JSON.stringify(data, null, 2);
+      
+      // For now, just show the data count
+      Alert.alert(
+        'Export Data',
+        `Ready to export:\n- ${data.loans.length} loans\n- ${data.payments.length} payments\n\nExport functionality will be available in a future update.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      Alert.alert('Error', 'Failed to export data');
+    }
+  };
+
   const handleClearData = () => {
     Alert.alert(
       'Clear All Data',
@@ -50,6 +87,7 @@ export default function SettingsScreen() {
           onPress: async () => {
             try {
               await clearAllData();
+              await refreshData();
               Alert.alert('Success', 'All data has been cleared');
             } catch (error) {
               console.error('Error clearing data:', error);
@@ -61,9 +99,7 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleExportData = () => {
-    Alert.alert('Coming Soon', 'Export functionality will be available in a future update');
-  };
+  const currency = getCurrencyByCode(settings.currency);
 
   return (
     <>
@@ -78,6 +114,27 @@ export default function SettingsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Currency Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Currency</Text>
+            <View style={commonStyles.card}>
+              <Pressable style={styles.settingItem} onPress={handleCurrencySettings}>
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
+                    <IconSymbol name="dollarsign.circle" size={24} color={colors.secondary} />
+                  </View>
+                  <View>
+                    <Text style={styles.settingTitle}>Default Currency</Text>
+                    <Text style={styles.settingSubtitle}>
+                      {currency?.name || 'Euro'} ({settings.currencySymbol})
+                    </Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
+
           {/* Security Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Security</Text>
@@ -107,6 +164,25 @@ export default function SettingsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Data Management</Text>
             <View style={commonStyles.card}>
+              <Pressable style={styles.settingItem} onPress={handleCloudBackup}>
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.accent + '20' }]}>
+                    <IconSymbol name="icloud.and.arrow.up" size={24} color={colors.accent} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.settingTitle}>Cloud Backup</Text>
+                    <Text style={styles.settingSubtitle}>
+                      {settings.lastBackupDate 
+                        ? `Last backup: ${new Date(settings.lastBackupDate).toLocaleDateString()}`
+                        : 'Enable Supabase for cloud backup'}
+                    </Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+
+              <View style={styles.divider} />
+
               <Pressable style={styles.settingItem} onPress={handleExportData}>
                 <View style={styles.settingLeft}>
                   <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
@@ -148,14 +224,14 @@ export default function SettingsScreen() {
               <View style={styles.divider} />
               <View style={styles.aboutItem}>
                 <Text style={styles.aboutLabel}>Storage</Text>
-                <Text style={styles.aboutValue}>Local Only</Text>
+                <Text style={styles.aboutValue}>Local + Cloud</Text>
               </View>
             </View>
           </View>
 
           {/* Info Text */}
           <Text style={styles.infoText}>
-            FriendLend stores all data locally on your device. No data is sent to external servers.
+            FriendLend stores all data locally on your device. Enable cloud backup to sync your data across devices.
           </Text>
         </ScrollView>
       </View>

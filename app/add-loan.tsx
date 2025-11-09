@@ -14,11 +14,13 @@ import { Stack, useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
+import { useSettings } from '@/hooks/useSettings';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function AddLoanScreen() {
   const router = useRouter();
   const { addLoan } = useLoans();
+  const { settings } = useSettings();
 
   const [borrowerName, setBorrowerName] = useState('');
   const [amount, setAmount] = useState('');
@@ -36,15 +38,15 @@ export default function AddLoanScreen() {
       return;
     }
 
-    const amountNum = parseFloat(amount);
+    const amountNum = parseInt(amount, 10);
     if (isNaN(amountNum) || amountNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      Alert.alert('Error', 'Please enter a valid amount (whole number)');
       return;
     }
 
-    const rateNum = parseFloat(interestRate);
+    const rateNum = parseInt(interestRate, 10);
     if (isNaN(rateNum) || rateNum < 0) {
-      Alert.alert('Error', 'Please enter a valid interest rate');
+      Alert.alert('Error', 'Please enter a valid monthly interest rate (whole number)');
       return;
     }
 
@@ -106,28 +108,39 @@ export default function AddLoanScreen() {
 
           {/* Amount */}
           <View style={styles.inputGroup}>
-            <Text style={commonStyles.label}>Loan Amount (€)</Text>
+            <Text style={commonStyles.label}>Loan Amount ({settings.currencySymbol})</Text>
             <TextInput
               style={commonStyles.input}
               value={amount}
-              onChangeText={setAmount}
-              placeholder="0.00"
+              onChangeText={(text) => {
+                // Only allow whole numbers
+                const cleaned = text.replace(/[^0-9]/g, '');
+                setAmount(cleaned);
+              }}
+              placeholder="0"
               placeholderTextColor={colors.textSecondary}
-              keyboardType="decimal-pad"
+              keyboardType="number-pad"
             />
           </View>
 
           {/* Interest Rate */}
           <View style={styles.inputGroup}>
-            <Text style={commonStyles.label}>Interest Rate (%)</Text>
+            <Text style={commonStyles.label}>Monthly Interest Rate (%)</Text>
             <TextInput
               style={commonStyles.input}
               value={interestRate}
-              onChangeText={setInterestRate}
-              placeholder="0.0"
+              onChangeText={(text) => {
+                // Only allow whole numbers
+                const cleaned = text.replace(/[^0-9]/g, '');
+                setInterestRate(cleaned);
+              }}
+              placeholder="0"
               placeholderTextColor={colors.textSecondary}
-              keyboardType="decimal-pad"
+              keyboardType="number-pad"
             />
+            <Text style={styles.helperText}>
+              This is the monthly interest rate to be paid each month
+            </Text>
           </View>
 
           {/* Interest Type */}
@@ -264,6 +277,12 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     marginBottom: 20,
+  },
+  helperText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 6,
+    fontStyle: 'italic',
   },
   interestTypeContainer: {
     flexDirection: 'row',
