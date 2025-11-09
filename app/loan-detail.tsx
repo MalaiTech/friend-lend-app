@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
-import Share from 'react-native-share';
+import * as Sharing from 'expo-sharing';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -72,15 +72,42 @@ export default function LoanDetailScreen() {
     const message = `Hi ${loan.borrowerName},\n\nHere's your loan summary:\n• Outstanding: ${formatCurrency(balance)}\n• Interest: ${formatCurrency(interest)}\n• Next Due: ${formatDate(loan.dueDate)}\n\nPlease confirm or make your next payment. Thank you!`;
 
     try {
-      await Share.open({
-        message,
-        title: 'Loan Reminder',
-      });
-    } catch (error: any) {
-      if (error?.message !== 'User did not share') {
-        console.error('Error sharing:', error);
-        Alert.alert('Error', 'Failed to share loan summary');
+      // Check if sharing is available
+      const isAvailable = await Sharing.isAvailableAsync();
+      
+      if (!isAvailable) {
+        // Fallback: Copy to clipboard or show alert
+        Alert.alert(
+          'Loan Reminder',
+          message,
+          [
+            { text: 'OK', style: 'default' }
+          ]
+        );
+        return;
       }
+
+      // Create a temporary text file to share
+      const FileSystem = require('expo-file-system');
+      const fileUri = `${FileSystem.cacheDirectory}loan-reminder.txt`;
+      
+      await FileSystem.writeAsStringAsync(fileUri, message);
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'text/plain',
+        dialogTitle: 'Send Loan Reminder',
+        UTI: 'public.plain-text',
+      });
+      
+    } catch (error: any) {
+      console.error('Error sharing:', error);
+      // Fallback: Show the message in an alert
+      Alert.alert(
+        'Loan Reminder',
+        message,
+        [
+          { text: 'OK', style: 'default' }
+        ]
+      );
     }
   };
 
