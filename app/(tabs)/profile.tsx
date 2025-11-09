@@ -1,91 +1,237 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, Platform } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
 
-export default function ProfileScreen() {
-  const theme = useTheme();
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
+import { Stack } from 'expo-router';
+import { colors, commonStyles } from '@/styles/commonStyles';
+import { IconSymbol } from '@/components/IconSymbol';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { clearAllData } from '@/utils/storage';
+
+export default function SettingsScreen() {
+  const [biometricAvailable, setBiometricAvailable] = React.useState(false);
+
+  React.useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  const checkBiometricAvailability = async () => {
+    const compatible = await LocalAuthentication.hasHardwareAsync();
+    const enrolled = await LocalAuthentication.isEnrolledAsync();
+    setBiometricAvailable(compatible && enrolled);
+  };
+
+  const handleEnableBiometric = async () => {
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Authenticate to enable biometric lock',
+        fallbackLabel: 'Use passcode',
+      });
+      
+      if (result.success) {
+        Alert.alert('Success', 'Biometric authentication enabled');
+      } else {
+        Alert.alert('Failed', 'Authentication failed');
+      }
+    } catch (error) {
+      console.error('Biometric error:', error);
+      Alert.alert('Error', 'Failed to enable biometric authentication');
+    }
+  };
+
+  const handleClearData = () => {
+    Alert.alert(
+      'Clear All Data',
+      'Are you sure you want to delete all loans and payments? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clearAllData();
+              Alert.alert('Success', 'All data has been cleared');
+            } catch (error) {
+              console.error('Error clearing data:', error);
+              Alert.alert('Error', 'Failed to clear data');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleExportData = () => {
+    Alert.alert('Coming Soon', 'Export functionality will be available in a future update');
+  };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.contentContainer,
-          Platform.OS !== 'ios' && styles.contentContainerWithTabBar
-        ]}
-      >
-        <GlassView style={[
-          styles.profileHeader,
-          Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-        ]} glassEffectStyle="regular">
-          <IconSymbol name="person.circle.fill" size={80} color={theme.colors.primary} />
-          <Text style={[styles.name, { color: theme.colors.text }]}>John Doe</Text>
-          <Text style={[styles.email, { color: theme.dark ? '#98989D' : '#666' }]}>john.doe@example.com</Text>
-        </GlassView>
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Settings',
+          headerLargeTitle: true,
+        }}
+      />
+      <View style={commonStyles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Security Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Security</Text>
+            <View style={commonStyles.card}>
+              <Pressable
+                style={styles.settingItem}
+                onPress={handleEnableBiometric}
+                disabled={!biometricAvailable}
+              >
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                    <IconSymbol name="faceid" size={24} color={colors.primary} />
+                  </View>
+                  <View>
+                    <Text style={styles.settingTitle}>Biometric Lock</Text>
+                    <Text style={styles.settingSubtitle}>
+                      {biometricAvailable ? 'Secure app with Face ID/Touch ID' : 'Not available on this device'}
+                    </Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
 
-        <GlassView style={[
-          styles.section,
-          Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-        ]} glassEffectStyle="regular">
-          <View style={styles.infoRow}>
-            <IconSymbol name="phone.fill" size={20} color={theme.dark ? '#98989D' : '#666'} />
-            <Text style={[styles.infoText, { color: theme.colors.text }]}>+1 (555) 123-4567</Text>
+          {/* Data Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Data Management</Text>
+            <View style={commonStyles.card}>
+              <Pressable style={styles.settingItem} onPress={handleExportData}>
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
+                    <IconSymbol name="square.and.arrow.up" size={24} color={colors.secondary} />
+                  </View>
+                  <View>
+                    <Text style={styles.settingTitle}>Export Data</Text>
+                    <Text style={styles.settingSubtitle}>Export loans as PDF or CSV</Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+
+              <View style={styles.divider} />
+
+              <Pressable style={styles.settingItem} onPress={handleClearData}>
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
+                    <IconSymbol name="trash" size={24} color={colors.error} />
+                  </View>
+                  <View>
+                    <Text style={[styles.settingTitle, { color: colors.error }]}>Clear All Data</Text>
+                    <Text style={styles.settingSubtitle}>Delete all loans and payments</Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
           </View>
-          <View style={styles.infoRow}>
-            <IconSymbol name="location.fill" size={20} color={theme.dark ? '#98989D' : '#666'} />
-            <Text style={[styles.infoText, { color: theme.colors.text }]}>San Francisco, CA</Text>
+
+          {/* About Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>About</Text>
+            <View style={commonStyles.card}>
+              <View style={styles.aboutItem}>
+                <Text style={styles.aboutLabel}>Version</Text>
+                <Text style={styles.aboutValue}>1.0.0</Text>
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.aboutItem}>
+                <Text style={styles.aboutLabel}>Storage</Text>
+                <Text style={styles.aboutValue}>Local Only</Text>
+              </View>
+            </View>
           </View>
-        </GlassView>
-      </ScrollView>
-    </SafeAreaView>
+
+          {/* Info Text */}
+          <Text style={styles.infoText}>
+            FriendLend stores all data locally on your device. No data is sent to external servers.
+          </Text>
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    // backgroundColor handled dynamically
-  },
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 20,
-  },
-  contentContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
-  },
-  profileHeader: {
-    alignItems: 'center',
-    borderRadius: 12,
-    padding: 32,
-    marginBottom: 16,
-    gap: 12,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    // color handled dynamically
-  },
-  email: {
-    fontSize: 16,
-    // color handled dynamically
+  scrollContent: {
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 100,
   },
   section: {
-    borderRadius: 12,
-    padding: 20,
-    gap: 12,
+    marginBottom: 24,
   },
-  infoRow: {
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  settingSubtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 8,
+  },
+  aboutItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  aboutLabel: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  aboutValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   infoText: {
-    fontSize: 16,
-    // color handled dynamically
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 20,
   },
 });

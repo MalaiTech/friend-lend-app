@@ -1,161 +1,151 @@
-import React from "react";
-import { Stack, Link } from "expo-router";
-import { FlatList, Pressable, StyleSheet, View, Text, Alert, Platform } from "react-native";
-import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
 
-const ICON_COLOR = "#007AFF";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { colors, commonStyles } from '@/styles/commonStyles';
+import { useLoans } from '@/hooks/useLoans';
+import SummaryCard from '@/components/SummaryCard';
+import LoanCard from '@/components/LoanCard';
+import FloatingActionButton from '@/components/FloatingActionButton';
 
-export default function HomeScreen() {
-  const theme = useTheme();
-  const modalDemos = [
-    {
-      title: "Standard Modal",
-      description: "Full screen modal presentation",
-      route: "/modal",
-      color: "#007AFF",
-    },
-    {
-      title: "Form Sheet",
-      description: "Bottom sheet with detents and grabber",
-      route: "/formsheet",
-      color: "#34C759",
-    },
-    {
-      title: "Transparent Modal",
-      description: "Overlay without obscuring background",
-      route: "/transparent-modal",
-      color: "#FF9500",
-    }
-  ];
+export default function DashboardScreen() {
+  const router = useRouter();
+  const { loans, payments, loading, getLoanSummary, getPaymentsForLoan } = useLoans();
+  const [refreshing, setRefreshing] = useState(false);
+  const summary = getLoanSummary();
 
-  const renderModalDemo = ({ item }: { item: (typeof modalDemos)[0] }) => (
-    <GlassView style={[
-      styles.demoCard,
-      Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-    ]} glassEffectStyle="regular">
-      <View style={[styles.demoIcon, { backgroundColor: item.color }]}>
-        <IconSymbol name="square.grid.3x3" color="white" size={24} />
-      </View>
-      <View style={styles.demoContent}>
-        <Text style={[styles.demoTitle, { color: theme.colors.text }]}>{item.title}</Text>
-        <Text style={[styles.demoDescription, { color: theme.dark ? '#98989D' : '#666' }]}>{item.description}</Text>
-      </View>
-      <Link href={item.route as any} asChild>
-        <Pressable>
-          <GlassView style={[
-            styles.tryButton,
-            Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }
-          ]} glassEffectStyle="clear">
-            <Text style={[styles.tryButtonText, { color: theme.colors.primary }]}>Try It</Text>
-          </GlassView>
-        </Pressable>
-      </Link>
-    </GlassView>
-  );
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // Simulate refresh
+    setTimeout(() => setRefreshing(false), 1000);
+  };
 
-  const renderHeaderRight = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol name="plus" color={theme.colors.primary} />
-    </Pressable>
-  );
+  const handleAddLoan = () => {
+    router.push('/add-loan');
+  };
 
-  const renderHeaderLeft = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol
-        name="gear"
-        color={theme.colors.primary}
-      />
-    </Pressable>
-  );
+  const handleLoanPress = (loanId: string) => {
+    router.push(`/loan-detail?id=${loanId}`);
+  };
 
   return (
     <>
-      {Platform.OS === 'ios' && (
-        <Stack.Screen
-          options={{
-            title: "Building the app...",
-            headerRight: renderHeaderRight,
-            headerLeft: renderHeaderLeft,
-          }}
-        />
-      )}
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <FlatList
-          data={modalDemos}
-          renderItem={renderModalDemo}
-          keyExtractor={(item) => item.route}
-          contentContainerStyle={[
-            styles.listContainer,
-            Platform.OS !== 'ios' && styles.listContainerWithTabBar
-          ]}
-          contentInsetAdjustmentBehavior="automatic"
+      <Stack.Screen
+        options={{
+          title: 'FriendLend',
+          headerLargeTitle: true,
+          headerTransparent: false,
+        }}
+      />
+      <View style={commonStyles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-        />
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {/* Summary Cards */}
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryRow}>
+              <SummaryCard
+                title="Total Lent"
+                amount={summary.totalLent}
+                icon="arrow.up.circle.fill"
+                color={colors.primary}
+              />
+              <SummaryCard
+                title="Total Repaid"
+                amount={summary.totalRepaid}
+                icon="arrow.down.circle.fill"
+                color={colors.secondary}
+              />
+            </View>
+            <View style={styles.summaryRow}>
+              <SummaryCard
+                title="Outstanding"
+                amount={summary.outstandingBalance}
+                icon="exclamationmark.circle.fill"
+                color={colors.accent}
+              />
+              <SummaryCard
+                title="Interest Earned"
+                amount={summary.interestEarned}
+                icon="chart.line.uptrend.xyaxis"
+                color={colors.secondary}
+              />
+            </View>
+          </View>
+
+          {/* Loans List */}
+          <View style={styles.loansSection}>
+            <Text style={styles.sectionTitle}>Your Loans</Text>
+            {loans.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>No loans yet</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Tap the + button to add your first loan
+                </Text>
+              </View>
+            ) : (
+              loans.map((loan) => (
+                <LoanCard
+                  key={loan.id}
+                  loan={loan}
+                  payments={getPaymentsForLoan(loan.id)}
+                  onPress={() => handleLoanPress(loan.id)}
+                />
+              ))
+            )}
+          </View>
+
+          {/* Bottom padding for FAB */}
+          <View style={{ height: 100 }} />
+        </ScrollView>
+
+        <FloatingActionButton onPress={handleAddLoan} />
       </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    // backgroundColor handled dynamically
+  scrollContent: {
+    paddingTop: 16,
   },
-  listContainer: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+  summaryContainer: {
+    paddingHorizontal: 10,
+    marginBottom: 24,
   },
-  listContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
-  },
-  demoCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+  summaryRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 12,
   },
-  demoIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  loansSection: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+    marginHorizontal: 16,
+  },
+  emptyState: {
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+    paddingVertical: 60,
+    paddingHorizontal: 40,
   },
-  demoContent: {
-    flex: 1,
-  },
-  demoTitle: {
+  emptyStateText: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 4,
-    // color handled dynamically
+    color: colors.textSecondary,
+    marginBottom: 8,
   },
-  demoDescription: {
+  emptyStateSubtext: {
     fontSize: 14,
-    lineHeight: 18,
-    // color handled dynamically
-  },
-  headerButtonContainer: {
-    padding: 6,
-  },
-  tryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  tryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    // color handled dynamically
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });
