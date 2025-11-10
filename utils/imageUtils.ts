@@ -1,5 +1,5 @@
 
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 
 /**
  * Copy an image from a source URI (like a contact photo) to the app's document directory
@@ -12,21 +12,20 @@ export async function copyImageToLocalStorage(sourceUri: string): Promise<string
     // Generate a unique filename
     const timestamp = Date.now();
     const filename = `contact_photo_${timestamp}.jpg`;
-    const destinationUri = `${FileSystem.documentDirectory}${filename}`;
+    
+    // Create a file in the document directory using the new FileSystem API
+    const file = new File(Paths.document, filename);
     
     // Copy the file
-    await FileSystem.copyAsync({
-      from: sourceUri,
-      to: destinationUri,
-    });
+    await file.copy(sourceUri);
     
-    console.log('Image copied to:', destinationUri);
+    console.log('Image copied to:', file.uri);
     
     // Verify the file exists
-    const fileInfo = await FileSystem.getInfoAsync(destinationUri);
-    if (fileInfo.exists) {
+    const exists = await file.exists();
+    if (exists) {
       console.log('Image successfully copied and verified');
-      return destinationUri;
+      return file.uri;
     } else {
       console.error('Image copy verification failed');
       return undefined;
@@ -43,10 +42,12 @@ export async function copyImageToLocalStorage(sourceUri: string): Promise<string
 export async function deleteLocalImage(uri: string): Promise<void> {
   try {
     // Only delete if it's in our document directory
-    if (uri.startsWith(FileSystem.documentDirectory || '')) {
-      const fileInfo = await FileSystem.getInfoAsync(uri);
-      if (fileInfo.exists) {
-        await FileSystem.deleteAsync(uri);
+    const documentPath = Paths.document;
+    if (uri.startsWith(documentPath)) {
+      const file = new File(uri);
+      const exists = await file.exists();
+      if (exists) {
+        await file.delete();
         console.log('Deleted local image:', uri);
       }
     }
