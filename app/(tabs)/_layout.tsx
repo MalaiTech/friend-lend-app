@@ -53,7 +53,7 @@ export default function TabLayout() {
         <Stack.Screen 
           name="profile" 
           options={{
-            headerShown: false,
+            headerShown: true,
           }}
         />
       </Stack>
