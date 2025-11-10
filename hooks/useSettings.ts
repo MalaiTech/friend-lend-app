@@ -54,16 +54,11 @@ export function useSettings() {
     await updateSettings({ supabaseEnabled: enabled });
   }, [updateSettings]);
 
-  const updateLastBackupDate = useCallback(async () => {
-    await updateSettings({ lastBackupDate: new Date().toISOString() });
-  }, [updateSettings]);
-
   return {
     settings,
     loading,
     updateSettings,
     setCurrency,
     setSupabaseEnabled,
-    updateLastBackupDate,
   };
 }

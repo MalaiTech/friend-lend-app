@@ -1,46 +1,33 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import * as LocalAuthentication from 'expo-local-authentication';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import { clearAllData, getAllData } from '@/utils/storage';
 import { useSettings } from '@/hooks/useSettings';
 import { useLoans } from '@/hooks/useLoans';
 import { getCurrencyByCode } from '@/utils/currencies';
-import {
-  isSupabaseConfigured,
-  saveSupabaseConfig,
-  clearSupabaseConfig,
-  backupToSupabase,
-  restoreFromSupabase,
-} from '@/utils/supabaseBackup';
+import { formatCurrency, formatDate, calculateLoanOutstanding, calculateInterestOutstanding } from '@/utils/loanCalculations';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { settings, updateLastBackupDate } = useSettings();
-  const { refreshData } = useLoans();
+  const { settings } = useSettings();
+  const { refreshData, loans, payments, getPaymentsForLoan } = useLoans();
   const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const [supabaseConfigured, setSupabaseConfigured] = useState(false);
-  const [showSupabaseModal, setShowSupabaseModal] = useState(false);
-  const [supabaseUrl, setSupabaseUrl] = useState('');
-  const [supabaseKey, setSupabaseKey] = useState('');
 
   useEffect(() => {
     checkBiometricAvailability();
-    checkSupabaseStatus();
   }, []);
 
   const checkBiometricAvailability = async () => {
     const compatible = await LocalAuthentication.hasHardwareAsync();
     const enrolled = await LocalAuthentication.isEnrolledAsync();
     setBiometricAvailable(compatible && enrolled);
-  };
-
-  const checkSupabaseStatus = async () => {
-    const configured = await isSupabaseConfigured();
-    setSupabaseConfigured(configured);
   };
 
   const handleEnableBiometric = async () => {
@@ -65,119 +52,322 @@ export default function SettingsScreen() {
     router.push('/currency-selector');
   };
 
-  const handleCloudBackup = () => {
-    if (!supabaseConfigured) {
-      Alert.alert(
-        'Cloud Backup Setup',
-        'To enable cloud backup:\n\n1. Enable Supabase in Natively by pressing the Supabase button\n2. Connect to your Supabase project\n3. Or manually configure Supabase credentials below',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Manual Setup', onPress: () => setShowSupabaseModal(true) },
-        ]
-      );
-    } else {
-      Alert.alert(
-        'Cloud Backup',
-        'Choose an action:',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Backup Now', onPress: handleBackupNow },
-          { text: 'Restore', onPress: handleRestoreBackup },
-          { text: 'Disconnect', style: 'destructive', onPress: handleDisconnectSupabase },
-        ]
-      );
-    }
-  };
-
-  const handleSaveSupabaseConfig = async () => {
-    if (!supabaseUrl.trim() || !supabaseKey.trim()) {
-      Alert.alert('Error', 'Please enter both Supabase URL and API key');
-      return;
-    }
-
-    try {
-      await saveSupabaseConfig(supabaseUrl.trim(), supabaseKey.trim());
-      setSupabaseConfigured(true);
-      setShowSupabaseModal(false);
-      setSupabaseUrl('');
-      setSupabaseKey('');
-      Alert.alert('Success', 'Supabase configured successfully!');
-    } catch (error) {
-      console.error('Error saving Supabase config:', error);
-      Alert.alert('Error', 'Failed to save Supabase configuration');
-    }
-  };
-
-  const handleBackupNow = async () => {
-    try {
-      const result = await backupToSupabase();
+  const generateCSV = () => {
+    // CSV Header
+    let csv = 'Borrower,Loan Amount,Interest Rate,Interest Type,Start Date,Status,Loan Outstanding,Interest Outstanding,Total Repaid,Interest Paid,Closure Date,Notes\n';
+    
+    // Add loan data
+    loans.forEach(loan => {
+      const loanPayments = getPaymentsForLoan(loan.id);
+      const loanOutstanding = calculateLoanOutstanding(loan, loanPayments);
+      const interestOutstanding = calculateInterestOutstanding(loan, loanPayments);
+      const principalPayments = loanPayments.filter(p => p.type === 'principal');
+      const interestPayments = loanPayments.filter(p => p.type === 'interest');
+      const totalRepaid = principalPayments.reduce((sum, p) => sum + p.amount, 0);
+      const interestPaid = interestPayments.reduce((sum, p) => sum + p.amount, 0);
       
-      if (result.success) {
-        await updateLastBackupDate();
-        Alert.alert('Success', result.message);
-      } else {
-        Alert.alert('Backup Failed', result.message);
-      }
-    } catch (error) {
-      console.error('Error during backup:', error);
-      Alert.alert('Error', 'Failed to backup data');
-    }
+      // Escape quotes and commas in text fields
+      const escapeCsvField = (field: string) => {
+        if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+          return `"${field.replace(/"/g, '""')}"`;
+        }
+        return field;
+      };
+      
+      csv += `${escapeCsvField(loan.borrowerName)},`;
+      csv += `${loan.amount},`;
+      csv += `${loan.interestRate}%,`;
+      csv += `${loan.interestType},`;
+      csv += `${formatDate(loan.startDate)},`;
+      csv += `${loan.status},`;
+      csv += `${loanOutstanding},`;
+      csv += `${interestOutstanding},`;
+      csv += `${totalRepaid},`;
+      csv += `${interestPaid},`;
+      csv += `${loan.closeDate ? formatDate(loan.closeDate) : 'N/A'},`;
+      csv += `${escapeCsvField(loan.notes || '')}\n`;
+    });
+    
+    return csv;
   };
 
-  const handleRestoreBackup = async () => {
+  const generatePDFHTML = () => {
+    const currencySymbol = settings.currencySymbol;
+    
+    let html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>FriendLend Loans Report</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            color: #333;
+          }
+          h1 {
+            color: #007AFF;
+            border-bottom: 2px solid #007AFF;
+            padding-bottom: 10px;
+          }
+          h2 {
+            color: #555;
+            margin-top: 30px;
+          }
+          .summary {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+          }
+          .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+          }
+          .loan-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+          }
+          .loan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+          }
+          .loan-name {
+            font-size: 18px;
+            font-weight: bold;
+          }
+          .status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .status-active {
+            background-color: #007AFF20;
+            color: #007AFF;
+          }
+          .status-paid {
+            background-color: #34C75920;
+            color: #34C759;
+          }
+          .status-overdue {
+            background-color: #FF3B3020;
+            color: #FF3B30;
+          }
+          .loan-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+          }
+          .detail-item {
+            display: flex;
+            flex-direction: column;
+          }
+          .detail-label {
+            font-size: 12px;
+            color: #888;
+          }
+          .detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 2px;
+          }
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>FriendLend Loans Report</h1>
+        <p>Generated on ${new Date().toLocaleDateString()}</p>
+    `;
+    
+    // Add summary
+    const totalLent = loans.reduce((sum, loan) => sum + loan.amount, 0);
+    const loanRepaid = payments.filter(p => p.type === 'principal').reduce((sum, p) => sum + p.amount, 0);
+    const loanOutstanding = totalLent - loanRepaid;
+    const interestPaid = payments.filter(p => p.type === 'interest').reduce((sum, p) => sum + p.amount, 0);
+    const interestOutstanding = loans.reduce((sum, loan) => {
+      if (loan.status === 'paid') return sum;
+      const loanPayments = getPaymentsForLoan(loan.id);
+      return sum + calculateInterestOutstanding(loan, loanPayments);
+    }, 0);
+    
+    html += `
+      <div class="summary">
+        <h2>Summary</h2>
+        <div class="summary-item">
+          <span>Total Loans:</span>
+          <strong>${loans.length}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Loan Outstanding:</span>
+          <strong>${formatCurrency(loanOutstanding, currencySymbol)}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Loan Repaid:</span>
+          <strong>${formatCurrency(loanRepaid, currencySymbol)}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Interest Outstanding:</span>
+          <strong>${formatCurrency(interestOutstanding, currencySymbol)}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Interest Paid:</span>
+          <strong>${formatCurrency(interestPaid, currencySymbol)}</strong>
+        </div>
+      </div>
+    `;
+    
+    // Add individual loans
+    html += '<h2>Loan Details</h2>';
+    
+    loans.forEach(loan => {
+      const loanPayments = getPaymentsForLoan(loan.id);
+      const loanOut = calculateLoanOutstanding(loan, loanPayments);
+      const interestOut = calculateInterestOutstanding(loan, loanPayments);
+      const principalPayments = loanPayments.filter(p => p.type === 'principal');
+      const totalRepaid = principalPayments.reduce((sum, p) => sum + p.amount, 0);
+      
+      const statusClass = loan.status === 'paid' ? 'status-paid' : loan.status === 'overdue' ? 'status-overdue' : 'status-active';
+      
+      html += `
+        <div class="loan-card">
+          <div class="loan-header">
+            <div class="loan-name">${loan.borrowerName}</div>
+            <div class="status ${statusClass}">${loan.status}</div>
+          </div>
+          <div class="loan-details">
+            <div class="detail-item">
+              <span class="detail-label">Loan Amount</span>
+              <span class="detail-value">${formatCurrency(loan.amount, currencySymbol)}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Interest Rate</span>
+              <span class="detail-value">${loan.interestRate}% (${loan.interestType})</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Loan Outstanding</span>
+              <span class="detail-value">${formatCurrency(loanOut, currencySymbol)}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Interest Outstanding</span>
+              <span class="detail-value">${formatCurrency(interestOut, currencySymbol)}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Total Repaid</span>
+              <span class="detail-value">${formatCurrency(totalRepaid, currencySymbol)}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Start Date</span>
+              <span class="detail-value">${formatDate(loan.startDate)}</span>
+            </div>
+            ${loan.closeDate ? `
+            <div class="detail-item">
+              <span class="detail-label">Closure Date</span>
+              <span class="detail-value">${formatDate(loan.closeDate)}</span>
+            </div>
+            ` : ''}
+          </div>
+          ${loan.notes ? `<p style="margin-top: 10px; font-style: italic; color: #666;">${loan.notes}</p>` : ''}
+        </div>
+      `;
+    });
+    
+    html += `
+        <div class="footer">
+          <p>Generated by FriendLend</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    return html;
+  };
+
+  const handleExportData = async () => {
     Alert.alert(
-      'Restore Backup',
-      'This will replace all local data with the backup. Continue?',
+      'Export Data',
+      'Choose export format:',
       [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Restore',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await restoreFromSupabase();
-              
-              if (result.success && result.data) {
-                // In a real implementation, you would restore the data here
-                await refreshData();
-                Alert.alert('Success', result.message);
-              } else {
-                Alert.alert('Restore Failed', result.message);
-              }
-            } catch (error) {
-              console.error('Error during restore:', error);
-              Alert.alert('Error', 'Failed to restore data');
-            }
-          },
-        },
+        { text: 'Export as PDF', onPress: handleExportPDF },
+        { text: 'Export as CSV', onPress: handleExportCSV },
       ]
     );
   };
 
-  const handleDisconnectSupabase = async () => {
+  const handleExportPDF = async () => {
     try {
-      await clearSupabaseConfig();
-      setSupabaseConfigured(false);
-      Alert.alert('Success', 'Supabase disconnected');
+      console.log('Starting PDF export...');
+      
+      const html = generatePDFHTML();
+      
+      // Generate PDF
+      const { uri } = await Print.printToFileAsync({
+        html,
+        base64: false,
+      });
+      
+      console.log('PDF generated at:', uri);
+      
+      // Share the PDF
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Export Loans as PDF',
+          UTI: 'com.adobe.pdf',
+        });
+        console.log('PDF shared successfully');
+      } else {
+        Alert.alert('Success', `PDF saved to: ${uri}`);
+      }
     } catch (error) {
-      console.error('Error disconnecting Supabase:', error);
-      Alert.alert('Error', 'Failed to disconnect Supabase');
+      console.error('Error exporting PDF:', error);
+      Alert.alert('Error', 'Failed to export PDF. Please try again.');
     }
   };
 
-  const handleExportData = async () => {
+  const handleExportCSV = async () => {
     try {
-      const data = await getAllData();
-      const dataString = JSON.stringify(data, null, 2);
+      console.log('Starting CSV export...');
       
-      Alert.alert(
-        'Export Data',
-        `Ready to export:\n- ${data.loans.length} loans\n- ${data.payments.length} payments\n\nExport functionality will be available in a future update.`,
-        [{ text: 'OK' }]
-      );
+      const csv = generateCSV();
+      
+      // Save CSV to file
+      const fileName = `friendlend-loans-${Date.now()}.csv`;
+      const fileUri = `${FileSystem.Paths.cache}/${fileName}`;
+      
+      await FileSystem.writeAsStringAsync(fileUri, csv);
+      
+      console.log('CSV generated at:', fileUri);
+      
+      // Share the CSV
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'text/csv',
+          dialogTitle: 'Export Loans as CSV',
+          UTI: 'public.comma-separated-values-text',
+        });
+        console.log('CSV shared successfully');
+      } else {
+        Alert.alert('Success', `CSV saved to: ${fileUri}`);
+      }
     } catch (error) {
-      console.error('Error exporting data:', error);
-      Alert.alert('Error', 'Failed to export data');
+      console.error('Error exporting CSV:', error);
+      Alert.alert('Error', 'Failed to export CSV. Please try again.');
     }
   };
 
@@ -270,34 +460,6 @@ export default function SettingsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Data Management</Text>
             <View style={commonStyles.card}>
-              <Pressable style={styles.settingItem} onPress={handleCloudBackup}>
-                <View style={styles.settingLeft}>
-                  <View style={[styles.iconContainer, { backgroundColor: colors.accent + '20' }]}>
-                    <IconSymbol name="icloud.and.arrow.up" size={24} color={colors.accent} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.settingTitleRow}>
-                      <Text style={styles.settingTitle}>Cloud Backup</Text>
-                      {supabaseConfigured && (
-                        <View style={styles.connectedBadge}>
-                          <Text style={styles.connectedText}>Connected</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.settingSubtitle}>
-                      {settings.lastBackupDate 
-                        ? `Last backup: ${new Date(settings.lastBackupDate).toLocaleDateString()}`
-                        : supabaseConfigured
-                        ? 'Tap to backup or restore'
-                        : 'Enable Supabase for cloud backup'}
-                    </Text>
-                  </View>
-                </View>
-                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-              </Pressable>
-
-              <View style={styles.divider} />
-
               <Pressable style={styles.settingItem} onPress={handleExportData}>
                 <View style={styles.settingLeft}>
                   <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
@@ -339,80 +501,17 @@ export default function SettingsScreen() {
               <View style={styles.divider} />
               <View style={styles.aboutItem}>
                 <Text style={styles.aboutLabel}>Storage</Text>
-                <Text style={styles.aboutValue}>
-                  {supabaseConfigured ? 'Local + Cloud' : 'Local Only'}
-                </Text>
+                <Text style={styles.aboutValue}>Local Only</Text>
               </View>
             </View>
           </View>
 
           {/* Info Text */}
           <Text style={styles.infoText}>
-            FriendLend stores all data locally on your device. Enable cloud backup to sync your data across devices.
+            FriendLend stores all data locally on your device. Use the export feature to backup your data.
           </Text>
         </ScrollView>
       </View>
-
-      {/* Supabase Configuration Modal */}
-      <Modal
-        visible={showSupabaseModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowSupabaseModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Configure Supabase</Text>
-            <Text style={styles.modalDescription}>
-              Enter your Supabase project credentials to enable cloud backup.
-            </Text>
-
-            <Text style={styles.modalLabel}>Supabase URL</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={supabaseUrl}
-              onChangeText={setSupabaseUrl}
-              placeholder="https://your-project.supabase.co"
-              placeholderTextColor={colors.textSecondary}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            <Text style={styles.modalLabel}>Supabase Anon Key</Text>
-            <TextInput
-              style={[styles.modalInput, styles.modalInputMultiline]}
-              value={supabaseKey}
-              onChangeText={setSupabaseKey}
-              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-              placeholderTextColor={colors.textSecondary}
-              autoCapitalize="none"
-              autoCorrect={false}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-
-            <View style={styles.modalButtons}>
-              <Pressable
-                style={[styles.modalButton, styles.modalButtonCancel]}
-                onPress={() => {
-                  setShowSupabaseModal(false);
-                  setSupabaseUrl('');
-                  setSupabaseKey('');
-                }}
-              >
-                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalButton, styles.modalButtonSave]}
-                onPress={handleSaveSupabaseConfig}
-              >
-                <Text style={styles.modalButtonTextSave}>Save</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </>
   );
 }
@@ -451,12 +550,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  settingTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 2,
-  },
   settingTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -465,17 +558,6 @@ const styles = StyleSheet.create({
   settingSubtitle: {
     fontSize: 13,
     color: colors.textSecondary,
-  },
-  connectedBadge: {
-    backgroundColor: colors.secondary + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  connectedText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.secondary,
   },
   divider: {
     height: 1,
@@ -503,82 +585,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  modalDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  modalLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  modalInput: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 16,
-  },
-  modalInputMultiline: {
-    height: 80,
-    paddingTop: 12,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  modalButtonCancel: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  modalButtonSave: {
-    backgroundColor: colors.primary,
-  },
-  modalButtonTextCancel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  modalButtonTextSave: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.card,
   },
 });

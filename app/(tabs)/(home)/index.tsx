@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform, Pressable } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
@@ -12,7 +12,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { loans, payments, loading, getLoanSummary, getPaymentsForLoan } = useLoans();
+  const { loans, payments, loading, getLoanSummary, getPaymentsForLoan, refreshData } = useLoans();
   const { settings } = useSettings();
   const [refreshing, setRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'date'>('name');
@@ -21,10 +21,18 @@ export default function DashboardScreen() {
   
   const summary = getLoanSummary();
 
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Dashboard screen focused, refreshing data...');
+      refreshData();
+    }, [refreshData])
+  );
+
   const onRefresh = async () => {
     setRefreshing(true);
-    // Simulate refresh
-    setTimeout(() => setRefreshing(false), 1000);
+    await refreshData();
+    setRefreshing(false);
   };
 
   const handleAddLoan = () => {
