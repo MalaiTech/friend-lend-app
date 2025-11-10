@@ -85,7 +85,7 @@ export default function LoanDetailScreen() {
         return;
       }
 
-      const fileUri = `${FileSystem.cacheDirectory}loan-reminder.txt`;
+      const fileUri = `${FileSystem.documentDirectory}loan-reminder.txt`;
       
       await FileSystem.writeAsStringAsync(fileUri, message);
       await Sharing.shareAsync(fileUri, {
