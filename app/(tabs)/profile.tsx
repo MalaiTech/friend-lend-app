@@ -404,7 +404,7 @@ export default function SettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
+          headerShown: Platform.OS !== 'ios',
           headerTitle: () => (
             <View style={styles.headerContainer}>
               <View style={styles.headerIconContainer}>
