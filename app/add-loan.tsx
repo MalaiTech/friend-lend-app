@@ -43,16 +43,37 @@ export default function AddLoanScreen() {
       }
 
       const result = await Contacts.presentContactPickerAsync();
-      if (result && result.name) {
-        // Use first name and last name
-        const firstName = result.firstName || '';
-        const lastName = result.lastName || '';
-        const fullName = `${firstName} ${lastName}`.trim();
-        setBorrowerName(fullName || result.name);
+      
+      if (result) {
+        console.log('Contact selected:', result);
+        
+        // Get full contact details with all fields
+        const fullContact = await Contacts.getContactByIdAsync(result.id, [
+          Contacts.Fields.FirstName,
+          Contacts.Fields.LastName,
+          Contacts.Fields.Image,
+        ]);
+        
+        console.log('Full contact details:', fullContact);
+        
+        if (fullContact) {
+          // Use first name and last name
+          const firstName = fullContact.firstName || '';
+          const lastName = fullContact.lastName || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          
+          // Set the name
+          if (fullName) {
+            setBorrowerName(fullName);
+          } else if (fullContact.name) {
+            setBorrowerName(fullContact.name);
+          }
 
-        // Try to get contact photo
-        if (result.image && result.image.uri) {
-          setBorrowerPhoto(result.image.uri);
+          // Try to get contact photo
+          if (fullContact.image && fullContact.image.uri) {
+            console.log('Setting photo from contact:', fullContact.image.uri);
+            setBorrowerPhoto(fullContact.image.uri);
+          }
         }
       }
     } catch (error) {
@@ -171,8 +192,7 @@ export default function AddLoanScreen() {
                 placeholderTextColor={colors.textSecondary}
               />
               <Pressable style={styles.contactButton} onPress={handleSelectFromContacts}>
-                <IconSymbol name="person.crop.circle.badge.plus" size={24} color={colors.primary} />
-                <Text style={styles.contactButtonText}>Contacts</Text>
+                <IconSymbol name="person.crop.circle.badge.plus" size={28} color={colors.primary} />
               </Pressable>
             </View>
           </View>
@@ -329,29 +349,22 @@ const styles = StyleSheet.create({
   nameInputContainer: {
     flexDirection: 'row',
     gap: 12,
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   nameInput: {
     flex: 1,
     marginBottom: 0,
   },
   contactButton: {
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    minWidth: 80,
-  },
-  contactButtonText: {
-    fontSize: 11,
-    color: colors.primary,
-    fontWeight: '600',
-    marginTop: 4,
+    height: 50,
   },
   helperText: {
     fontSize: 13,

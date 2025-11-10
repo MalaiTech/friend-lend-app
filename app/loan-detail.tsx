@@ -176,17 +176,46 @@ export default function LoanDetailScreen() {
       }
 
       const result = await Contacts.presentContactPickerAsync();
-      if (result && result.name) {
-        const firstName = result.firstName || '';
-        const lastName = result.lastName || '';
-        const fullName = `${firstName} ${lastName}`.trim();
-        const name = fullName || result.name;
+      
+      if (result) {
+        console.log('Contact selected:', result);
         
-        await updateLoan(loanId, { 
-          borrowerName: name,
-          borrowerPhoto: result.image?.uri 
-        });
-        setEditingBorrower(false);
+        // Get full contact details with all fields
+        const fullContact = await Contacts.getContactByIdAsync(result.id, [
+          Contacts.Fields.FirstName,
+          Contacts.Fields.LastName,
+          Contacts.Fields.Image,
+        ]);
+        
+        console.log('Full contact details:', fullContact);
+        
+        if (fullContact) {
+          // Use first name and last name
+          const firstName = fullContact.firstName || '';
+          const lastName = fullContact.lastName || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          
+          const updateData: any = {};
+          
+          // Set the name
+          if (fullName) {
+            updateData.borrowerName = fullName;
+          } else if (fullContact.name) {
+            updateData.borrowerName = fullContact.name;
+          }
+
+          // Try to get contact photo
+          if (fullContact.image && fullContact.image.uri) {
+            console.log('Setting photo from contact:', fullContact.image.uri);
+            updateData.borrowerPhoto = fullContact.image.uri;
+          }
+          
+          // Update the loan
+          if (Object.keys(updateData).length > 0) {
+            await updateLoan(loanId, updateData);
+            setEditingBorrower(false);
+          }
+        }
       }
     } catch (error) {
       console.error('Error selecting contact:', error);
