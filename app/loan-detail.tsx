@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import * as Contacts from 'expo-contacts';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
@@ -74,9 +74,11 @@ export default function LoanDetailScreen() {
     const message = `Hi ${loan.borrowerName},\n\nHere's your loan summary:\n• Loan Outstanding: ${formatCurrency(loanOutstanding, settings.currencySymbol)}\n• Interest Outstanding: ${formatCurrency(interestOutstanding, settings.currencySymbol)}\n• Monthly Interest: ${formatCurrency(monthlyInterest, settings.currencySymbol)}\n\nPlease make your payment. Thank you!`;
 
     try {
+      // Check if sharing is available
       const isAvailable = await Sharing.isAvailableAsync();
       
       if (!isAvailable) {
+        console.log('Sharing not available, showing alert instead');
         Alert.alert(
           'Loan Reminder',
           message,
@@ -85,21 +87,45 @@ export default function LoanDetailScreen() {
         return;
       }
 
-      const fileUri = `${FileSystem.documentDirectory}loan-reminder.txt`;
+      // Create a file in the cache directory using the new FileSystem API
+      const file = new File(Paths.cache, `loan-reminder-${Date.now()}.txt`);
       
-      await FileSystem.writeAsStringAsync(fileUri, message);
-      await Sharing.shareAsync(fileUri, {
+      // Write the message to the file
+      file.write(message);
+      
+      console.log('File created at:', file.uri);
+      
+      // Share the file
+      await Sharing.shareAsync(file.uri, {
         mimeType: 'text/plain',
         dialogTitle: 'Send Loan Reminder',
         UTI: 'public.plain-text',
       });
       
+      console.log('File shared successfully');
+      
     } catch (error: any) {
-      console.error('Error sharing:', error);
+      console.error('Error sharing loan reminder:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+      
+      // Fallback to showing the message in an alert
       Alert.alert(
-        'Loan Reminder',
-        message,
-        [{ text: 'OK', style: 'default' }]
+        'Unable to Share',
+        `Could not open share dialog. Here's the reminder message:\n\n${message}`,
+        [
+          { 
+            text: 'Copy Message', 
+            onPress: () => {
+              // On a real device, you could use Clipboard here
+              console.log('Message to copy:', message);
+            }
+          },
+          { text: 'OK', style: 'default' }
+        ]
       );
     }
   };
