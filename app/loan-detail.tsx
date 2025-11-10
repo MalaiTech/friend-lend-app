@@ -31,6 +31,7 @@ import {
   calculateMonthlyInterest,
 } from '@/utils/loanCalculations';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { copyImageToLocalStorage } from '@/utils/imageUtils';
 
 export default function LoanDetailScreen() {
   const router = useRouter();
@@ -210,14 +211,30 @@ export default function LoanDetailScreen() {
             console.log('Full contact details:', fullContact);
             
             if (fullContact && fullContact.image && fullContact.image.uri) {
-              console.log('Setting photo from contact:', fullContact.image.uri);
-              updateData.borrowerPhoto = fullContact.image.uri;
+              console.log('Contact image URI:', fullContact.image.uri);
+              
+              // Copy the image to local storage
+              const localUri = await copyImageToLocalStorage(fullContact.image.uri);
+              
+              if (localUri) {
+                console.log('Setting photo from local copy:', localUri);
+                updateData.borrowerPhoto = localUri;
+              } else {
+                console.log('Failed to copy contact image to local storage');
+                Alert.alert(
+                  'Photo Not Available',
+                  'Could not access the contact photo. You can add a photo manually.'
+                );
+              }
             } else {
               console.log('No image found in full contact details');
             }
           } catch (imageError) {
             console.error('Error fetching contact image:', imageError);
-            // Continue without photo - name is already set
+            Alert.alert(
+              'Photo Not Available',
+              'Could not access the contact photo. You can add a photo manually.'
+            );
           }
         } else {
           console.log('Contact has no image available');
@@ -251,7 +268,13 @@ export default function LoanDetailScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        await updateLoan(loanId, { borrowerPhoto: result.assets[0].uri });
+        // Copy the selected image to local storage
+        const localUri = await copyImageToLocalStorage(result.assets[0].uri);
+        if (localUri) {
+          await updateLoan(loanId, { borrowerPhoto: localUri });
+        } else {
+          await updateLoan(loanId, { borrowerPhoto: result.assets[0].uri });
+        }
       }
     } catch (error) {
       console.error('Error selecting photo:', error);

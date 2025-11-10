@@ -19,6 +19,7 @@ import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
 import { IconSymbol } from '@/components/IconSymbol';
+import { copyImageToLocalStorage } from '@/utils/imageUtils';
 
 export default function AddLoanScreen() {
   const router = useRouter();
@@ -74,14 +75,30 @@ export default function AddLoanScreen() {
             console.log('Full contact details:', fullContact);
             
             if (fullContact && fullContact.image && fullContact.image.uri) {
-              console.log('Setting photo from contact:', fullContact.image.uri);
-              setBorrowerPhoto(fullContact.image.uri);
+              console.log('Contact image URI:', fullContact.image.uri);
+              
+              // Copy the image to local storage
+              const localUri = await copyImageToLocalStorage(fullContact.image.uri);
+              
+              if (localUri) {
+                console.log('Setting photo from local copy:', localUri);
+                setBorrowerPhoto(localUri);
+              } else {
+                console.log('Failed to copy contact image to local storage');
+                Alert.alert(
+                  'Photo Not Available',
+                  'Could not access the contact photo. You can add a photo manually.'
+                );
+              }
             } else {
               console.log('No image found in full contact details');
             }
           } catch (imageError) {
             console.error('Error fetching contact image:', imageError);
-            // Continue without photo - name is already set
+            Alert.alert(
+              'Photo Not Available',
+              'Could not access the contact photo. You can add a photo manually.'
+            );
           }
         } else {
           console.log('Contact has no image available');
@@ -109,7 +126,13 @@ export default function AddLoanScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        setBorrowerPhoto(result.assets[0].uri);
+        // Copy the selected image to local storage
+        const localUri = await copyImageToLocalStorage(result.assets[0].uri);
+        if (localUri) {
+          setBorrowerPhoto(localUri);
+        } else {
+          setBorrowerPhoto(result.assets[0].uri);
+        }
       }
     } catch (error) {
       console.error('Error selecting photo:', error);
