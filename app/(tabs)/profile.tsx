@@ -413,11 +413,12 @@ export default function SettingsScreen() {
                   resizeMode="contain"
                 />
               </View>
-              <Text style={styles.headerTitle}>Settings</Text>
+              <Text style={styles.headerTitle}>FriendLend</Text>
             </View>
           ),
           headerLargeTitle: false,
           headerTransparent: false,
+          headerLeft: () => null,
         }}
       />
       <View style={commonStyles.container}>
