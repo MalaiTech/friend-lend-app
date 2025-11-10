@@ -14,8 +14,8 @@ export async function copyImageToLocalStorage(sourceUri: string): Promise<string
     const random = Math.floor(Math.random() * 10000);
     const filename = `contact_photo_${timestamp}_${random}.jpg`;
     
-    // Create destination path in document directory
-    const destinationUri = `${FileSystem.documentDirectory}${filename}`;
+    // Create destination path in document directory using the new API
+    const destinationUri = `${FileSystem.Paths.document}/${filename}`;
     
     console.log('Destination URI:', destinationUri);
     
@@ -62,7 +62,7 @@ export async function copyImageToLocalStorage(sourceUri: string): Promise<string
 export async function deleteLocalImage(uri: string): Promise<void> {
   try {
     // Only delete if it's in our document directory
-    if (uri.startsWith(FileSystem.documentDirectory || '')) {
+    if (uri.startsWith(FileSystem.Paths.document || '')) {
       const fileInfo = await FileSystem.getInfoAsync(uri);
       if (fileInfo.exists) {
         await FileSystem.deleteAsync(uri);

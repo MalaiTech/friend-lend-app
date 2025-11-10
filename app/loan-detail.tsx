@@ -88,9 +88,9 @@ export default function LoanDetailScreen() {
         return;
       }
 
-      // Create a file in the cache directory
+      // Create a file in the cache directory using the new API
       const fileName = `loan-reminder-${Date.now()}.txt`;
-      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      const fileUri = `${FileSystem.Paths.cache}/${fileName}`;
       
       // Write the message to the file
       await FileSystem.writeAsStringAsync(fileUri, message);
