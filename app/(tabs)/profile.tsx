@@ -7,7 +7,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 import { clearAllData, getAllData } from '@/utils/storage';
 import { useSettings } from '@/hooks/useSettings';
 import { useLoans } from '@/hooks/useLoans';
@@ -346,27 +346,27 @@ export default function SettingsScreen() {
       
       const csv = generateCSV();
       
-      // Save CSV to file
+      // Save CSV to file using the new Expo SDK 54 API
       const fileName = `friendlend-loans-${Date.now()}.csv`;
-      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      const file = new File(Paths.cache, fileName);
       
-      console.log('Writing CSV to:', fileUri);
-      await FileSystem.writeAsStringAsync(fileUri, csv, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
+      console.log('Writing CSV to:', file.uri);
       
-      console.log('CSV generated at:', fileUri);
+      // Write the CSV content to the file
+      file.write(csv);
+      
+      console.log('CSV generated at:', file.uri);
       
       // Share the CSV
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, {
+        await Sharing.shareAsync(file.uri, {
           mimeType: 'text/csv',
           dialogTitle: 'Export Loans as CSV',
           UTI: 'public.comma-separated-values-text',
         });
         console.log('CSV shared successfully');
       } else {
-        Alert.alert('Success', `CSV saved to: ${fileUri}`);
+        Alert.alert('Success', `CSV saved to: ${file.uri}`);
       }
     } catch (error) {
       console.error('Error exporting CSV:', error);
