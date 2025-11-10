@@ -88,10 +88,11 @@ export default function LoanDetailScreen() {
       }
 
       // Create a file in the cache directory using the new FileSystem API
-      const file = new File(Paths.cache, `loan-reminder-${Date.now()}.txt`);
+      const fileName = `loan-reminder-${Date.now()}.txt`;
+      const file = new File(Paths.cache, fileName);
       
       // Write the message to the file
-      file.write(message);
+      await file.write(message);
       
       console.log('File created at:', file.uri);
       
@@ -180,41 +181,52 @@ export default function LoanDetailScreen() {
       if (result) {
         console.log('Contact selected:', result);
         
-        // Get full contact details with all fields
-        const fullContact = await Contacts.getContactByIdAsync(result.id, [
-          Contacts.Fields.FirstName,
-          Contacts.Fields.LastName,
-          Contacts.Fields.Image,
-        ]);
+        const updateData: any = {};
         
-        console.log('Full contact details:', fullContact);
+        // Extract name from the initial result
+        let fullName = '';
+        if (result.firstName || result.lastName) {
+          const firstName = result.firstName || '';
+          const lastName = result.lastName || '';
+          fullName = `${firstName} ${lastName}`.trim();
+        } else if (result.name) {
+          fullName = result.name;
+        }
         
-        if (fullContact) {
-          // Use first name and last name
-          const firstName = fullContact.firstName || '';
-          const lastName = fullContact.lastName || '';
-          const fullName = `${firstName} ${lastName}`.trim();
-          
-          const updateData: any = {};
-          
-          // Set the name
-          if (fullName) {
-            updateData.borrowerName = fullName;
-          } else if (fullContact.name) {
-            updateData.borrowerName = fullContact.name;
+        // Set the name immediately from the picker result
+        if (fullName) {
+          updateData.borrowerName = fullName;
+          console.log('Set borrower name from picker:', fullName);
+        }
+        
+        // Try to get the photo from the picker result
+        if (result.imageAvailable) {
+          try {
+            // Get full contact details with image
+            const fullContact = await Contacts.getContactByIdAsync(result.id, [
+              Contacts.Fields.Image,
+            ]);
+            
+            console.log('Full contact details:', fullContact);
+            
+            if (fullContact && fullContact.image && fullContact.image.uri) {
+              console.log('Setting photo from contact:', fullContact.image.uri);
+              updateData.borrowerPhoto = fullContact.image.uri;
+            } else {
+              console.log('No image found in full contact details');
+            }
+          } catch (imageError) {
+            console.error('Error fetching contact image:', imageError);
+            // Continue without photo - name is already set
           }
-
-          // Try to get contact photo
-          if (fullContact.image && fullContact.image.uri) {
-            console.log('Setting photo from contact:', fullContact.image.uri);
-            updateData.borrowerPhoto = fullContact.image.uri;
-          }
-          
-          // Update the loan
-          if (Object.keys(updateData).length > 0) {
-            await updateLoan(loanId, updateData);
-            setEditingBorrower(false);
-          }
+        } else {
+          console.log('Contact has no image available');
+        }
+        
+        // Update the loan
+        if (Object.keys(updateData).length > 0) {
+          await updateLoan(loanId, updateData);
+          setEditingBorrower(false);
         }
       }
     } catch (error) {

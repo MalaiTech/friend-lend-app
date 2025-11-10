@@ -47,33 +47,44 @@ export default function AddLoanScreen() {
       if (result) {
         console.log('Contact selected:', result);
         
-        // Get full contact details with all fields
-        const fullContact = await Contacts.getContactByIdAsync(result.id, [
-          Contacts.Fields.FirstName,
-          Contacts.Fields.LastName,
-          Contacts.Fields.Image,
-        ]);
+        // Extract name from the initial result
+        let fullName = '';
+        if (result.firstName || result.lastName) {
+          const firstName = result.firstName || '';
+          const lastName = result.lastName || '';
+          fullName = `${firstName} ${lastName}`.trim();
+        } else if (result.name) {
+          fullName = result.name;
+        }
         
-        console.log('Full contact details:', fullContact);
+        // Set the name immediately from the picker result
+        if (fullName) {
+          setBorrowerName(fullName);
+          console.log('Set borrower name from picker:', fullName);
+        }
         
-        if (fullContact) {
-          // Use first name and last name
-          const firstName = fullContact.firstName || '';
-          const lastName = fullContact.lastName || '';
-          const fullName = `${firstName} ${lastName}`.trim();
-          
-          // Set the name
-          if (fullName) {
-            setBorrowerName(fullName);
-          } else if (fullContact.name) {
-            setBorrowerName(fullContact.name);
+        // Try to get the photo from the picker result
+        if (result.imageAvailable) {
+          try {
+            // Get full contact details with image
+            const fullContact = await Contacts.getContactByIdAsync(result.id, [
+              Contacts.Fields.Image,
+            ]);
+            
+            console.log('Full contact details:', fullContact);
+            
+            if (fullContact && fullContact.image && fullContact.image.uri) {
+              console.log('Setting photo from contact:', fullContact.image.uri);
+              setBorrowerPhoto(fullContact.image.uri);
+            } else {
+              console.log('No image found in full contact details');
+            }
+          } catch (imageError) {
+            console.error('Error fetching contact image:', imageError);
+            // Continue without photo - name is already set
           }
-
-          // Try to get contact photo
-          if (fullContact.image && fullContact.image.uri) {
-            console.log('Setting photo from contact:', fullContact.image.uri);
-            setBorrowerPhoto(fullContact.image.uri);
-          }
+        } else {
+          console.log('Contact has no image available');
         }
       }
     } catch (error) {
