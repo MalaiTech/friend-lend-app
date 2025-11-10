@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ export default function CurrencySelectorScreen() {
   const router = useRouter();
   const { settings, setCurrency } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const filteredCurrencies = CURRENCIES.filter(
     (currency) =>
@@ -27,21 +27,33 @@ export default function CurrencySelectorScreen() {
   );
 
   const handleSelectCurrency = async (currency: Currency) => {
-    setSelectedCurrency(currency.code);
-    await setCurrency(currency.code, currency.symbol);
-    // Small delay to ensure state is saved before navigating back
-    setTimeout(() => {
-      router.back();
-    }, 100);
+    if (isSelecting) return; // Prevent multiple selections
+    
+    setIsSelecting(true);
+    console.log('Selecting currency:', currency.code);
+    
+    try {
+      await setCurrency(currency.code, currency.symbol);
+      console.log('Currency saved successfully');
+      
+      // Navigate back after a small delay
+      setTimeout(() => {
+        router.back();
+      }, 150);
+    } catch (error) {
+      console.error('Error saving currency:', error);
+      setIsSelecting(false);
+    }
   };
 
   const renderCurrencyItem = ({ item }: { item: Currency }) => {
-    const isSelected = item.code === selectedCurrency;
+    const isSelected = item.code === settings.currency;
 
     return (
       <Pressable
         style={[styles.currencyItem, isSelected && styles.currencyItemSelected]}
         onPress={() => handleSelectCurrency(item)}
+        disabled={isSelecting}
       >
         <View style={styles.currencyInfo}>
           <Text style={styles.currencySymbol}>{item.symbol}</Text>
@@ -64,7 +76,7 @@ export default function CurrencySelectorScreen() {
           title: 'Select Currency',
           presentation: 'modal',
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} disabled={isSelecting}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </Pressable>
           ),
@@ -81,9 +93,10 @@ export default function CurrencySelectorScreen() {
             placeholder="Search currencies..."
             placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
+            editable={!isSelecting}
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery('')}>
+            <Pressable onPress={() => setSearchQuery('')} disabled={isSelecting}>
               <IconSymbol name="xmark.circle.fill" size={20} color={colors.textSecondary} />
             </Pressable>
           )}
@@ -96,6 +109,7 @@ export default function CurrencySelectorScreen() {
           keyExtractor={(item) => item.code}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          scrollEnabled={!isSelecting}
         />
       </View>
     </>
