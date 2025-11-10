@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ export default function CurrencySelectorScreen() {
   const router = useRouter();
   const { settings, setCurrency } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
 
   const filteredCurrencies = CURRENCIES.filter(
     (currency) =>
@@ -26,12 +27,16 @@ export default function CurrencySelectorScreen() {
   );
 
   const handleSelectCurrency = async (currency: Currency) => {
+    setSelectedCurrency(currency.code);
     await setCurrency(currency.code, currency.symbol);
-    router.back();
+    // Small delay to ensure state is saved before navigating back
+    setTimeout(() => {
+      router.back();
+    }, 100);
   };
 
   const renderCurrencyItem = ({ item }: { item: Currency }) => {
-    const isSelected = item.code === settings.currency;
+    const isSelected = item.code === selectedCurrency;
 
     return (
       <Pressable

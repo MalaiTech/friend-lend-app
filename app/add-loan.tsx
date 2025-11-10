@@ -9,9 +9,12 @@ import {
   Pressable,
   Alert,
   Platform,
+  Image,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Contacts from 'expo-contacts';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
@@ -23,14 +26,64 @@ export default function AddLoanScreen() {
   const { settings } = useSettings();
 
   const [borrowerName, setBorrowerName] = useState('');
+  const [borrowerPhoto, setBorrowerPhoto] = useState<string | undefined>(undefined);
   const [amount, setAmount] = useState('');
   const [interestRate, setInterestRate] = useState('');
   const [interestType, setInterestType] = useState<'simple' | 'compound'>('simple');
   const [startDate, setStartDate] = useState(new Date());
-  const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
   const [notes, setNotes] = useState('');
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showDueDatePicker, setShowDueDatePicker] = useState(false);
+
+  const handleSelectFromContacts = async () => {
+    try {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant contacts permission to select a contact.');
+        return;
+      }
+
+      const result = await Contacts.presentContactPickerAsync();
+      if (result && result.name) {
+        // Use first name and last name
+        const firstName = result.firstName || '';
+        const lastName = result.lastName || '';
+        const fullName = `${firstName} ${lastName}`.trim();
+        setBorrowerName(fullName || result.name);
+
+        // Try to get contact photo
+        if (result.image && result.image.uri) {
+          setBorrowerPhoto(result.image.uri);
+        }
+      }
+    } catch (error) {
+      console.error('Error selecting contact:', error);
+      Alert.alert('Error', 'Failed to select contact');
+    }
+  };
+
+  const handleSelectPhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant photo library permission to select a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setBorrowerPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error selecting photo:', error);
+      Alert.alert('Error', 'Failed to select photo');
+    }
+  };
 
   const handleSave = async () => {
     if (!borrowerName.trim()) {
@@ -50,19 +103,14 @@ export default function AddLoanScreen() {
       return;
     }
 
-    if (dueDate <= startDate) {
-      Alert.alert('Error', 'Due date must be after start date');
-      return;
-    }
-
     try {
       await addLoan({
         borrowerName: borrowerName.trim(),
+        borrowerPhoto,
         amount: amountNum,
         interestRate: rateNum,
         interestType,
         startDate: startDate.toISOString(),
-        dueDate: dueDate.toISOString(),
         notes: notes.trim(),
       });
 
@@ -94,16 +142,39 @@ export default function AddLoanScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Borrower Photo */}
+          <View style={styles.photoSection}>
+            <Pressable style={styles.photoContainer} onPress={handleSelectPhoto}>
+              {borrowerPhoto ? (
+                <Image source={{ uri: borrowerPhoto }} style={styles.photo} />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <IconSymbol name="person.fill" size={40} color={colors.textSecondary} />
+                </View>
+              )}
+              <View style={styles.editIconContainer}>
+                <IconSymbol name="pencil.circle.fill" size={32} color={colors.primary} />
+              </View>
+            </Pressable>
+            <Text style={styles.photoHint}>Tap to add photo</Text>
+          </View>
+
           {/* Borrower Name */}
           <View style={styles.inputGroup}>
             <Text style={commonStyles.label}>Borrower Name</Text>
-            <TextInput
-              style={commonStyles.input}
-              value={borrowerName}
-              onChangeText={setBorrowerName}
-              placeholder="Enter borrower name"
-              placeholderTextColor={colors.textSecondary}
-            />
+            <View style={styles.nameInputContainer}>
+              <TextInput
+                style={[commonStyles.input, styles.nameInput]}
+                value={borrowerName}
+                onChangeText={setBorrowerName}
+                placeholder="Enter borrower name"
+                placeholderTextColor={colors.textSecondary}
+              />
+              <Pressable style={styles.contactButton} onPress={handleSelectFromContacts}>
+                <IconSymbol name="person.crop.circle.badge.plus" size={24} color={colors.primary} />
+                <Text style={styles.contactButtonText}>Contacts</Text>
+              </Pressable>
+            </View>
           </View>
 
           {/* Amount */}
@@ -143,105 +214,50 @@ export default function AddLoanScreen() {
             </Text>
           </View>
 
-          {/* Interest Type */}
-          <View style={styles.inputGroup}>
-            <Text style={commonStyles.label}>Interest Type</Text>
-            <View style={styles.interestTypeContainer}>
-              <Pressable
-                style={[
-                  styles.interestTypeButton,
-                  interestType === 'simple' && styles.interestTypeButtonActive,
-                ]}
-                onPress={() => setInterestType('simple')}
-              >
-                <Text
-                  style={[
-                    styles.interestTypeText,
-                    interestType === 'simple' && styles.interestTypeTextActive,
-                  ]}
-                >
-                  Simple
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.interestTypeButton,
-                  interestType === 'compound' && styles.interestTypeButtonActive,
-                ]}
-                onPress={() => setInterestType('compound')}
-              >
-                <Text
-                  style={[
-                    styles.interestTypeText,
-                    interestType === 'compound' && styles.interestTypeTextActive,
-                  ]}
-                >
-                  Compound
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-
           {/* Start Date */}
           <View style={styles.inputGroup}>
             <Text style={commonStyles.label}>Start Date</Text>
-            <Pressable
-              style={styles.dateButton}
-              onPress={() => setShowStartDatePicker(true)}
-            >
-              <Text style={styles.dateButtonText}>
-                {startDate.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </Text>
-              <IconSymbol name="calendar" size={20} color={colors.primary} />
-            </Pressable>
-            {showStartDatePicker && (
+            {Platform.OS === 'ios' ? (
               <DateTimePicker
                 value={startDate}
                 mode="date"
-                display="default"
+                display="inline"
                 onChange={(event, selectedDate) => {
-                  setShowStartDatePicker(Platform.OS === 'ios');
                   if (selectedDate) {
                     setStartDate(selectedDate);
                   }
                 }}
+                style={styles.iosDatePicker}
               />
-            )}
-          </View>
-
-          {/* Due Date */}
-          <View style={styles.inputGroup}>
-            <Text style={commonStyles.label}>Due Date</Text>
-            <Pressable
-              style={styles.dateButton}
-              onPress={() => setShowDueDatePicker(true)}
-            >
-              <Text style={styles.dateButtonText}>
-                {dueDate.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </Text>
-              <IconSymbol name="calendar" size={20} color={colors.primary} />
-            </Pressable>
-            {showDueDatePicker && (
-              <DateTimePicker
-                value={dueDate}
-                mode="date"
-                display="default"
-                minimumDate={startDate}
-                onChange={(event, selectedDate) => {
-                  setShowDueDatePicker(Platform.OS === 'ios');
-                  if (selectedDate) {
-                    setDueDate(selectedDate);
-                  }
-                }}
-              />
+            ) : (
+              <>
+                <Pressable
+                  style={styles.dateButton}
+                  onPress={() => setShowStartDatePicker(true)}
+                >
+                  <Text style={styles.dateButtonText}>
+                    {startDate.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                  <IconSymbol name="calendar" size={20} color={colors.primary} />
+                </Pressable>
+                {showStartDatePicker && (
+                  <DateTimePicker
+                    value={startDate}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setShowStartDatePicker(false);
+                      if (selectedDate) {
+                        setStartDate(selectedDate);
+                      }
+                    }}
+                  />
+                )}
+              </>
             )}
           </View>
 
@@ -275,40 +291,73 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
+  photoSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  photoContainer: {
+    position: 'relative',
+    marginBottom: 8,
+  },
+  photo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  photoPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editIconContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+  },
+  photoHint: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
   inputGroup: {
     marginBottom: 20,
+  },
+  nameInputContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  nameInput: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  contactButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    minWidth: 80,
+  },
+  contactButtonText: {
+    fontSize: 11,
+    color: colors.primary,
+    fontWeight: '600',
+    marginTop: 4,
   },
   helperText: {
     fontSize: 13,
     color: colors.textSecondary,
     marginTop: 6,
     fontStyle: 'italic',
-  },
-  interestTypeContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  interestTypeButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
-    alignItems: 'center',
-  },
-  interestTypeButtonActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary + '10',
-  },
-  interestTypeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  interestTypeTextActive: {
-    color: colors.primary,
   },
   dateButton: {
     flexDirection: 'row',
@@ -324,6 +373,9 @@ const styles = StyleSheet.create({
   dateButtonText: {
     fontSize: 16,
     color: colors.text,
+  },
+  iosDatePicker: {
+    width: '100%',
   },
   notesInput: {
     height: 100,

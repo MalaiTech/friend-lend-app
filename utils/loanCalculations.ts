@@ -15,7 +15,7 @@ export function calculateSimpleInterest(
 ): number {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const months = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+  const months = Math.max(0, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30)));
   return Math.round((principal * monthlyRate * months) / 100);
 }
 
@@ -28,7 +28,7 @@ export function calculateCompoundInterest(
 ): number {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const months = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+  const months = Math.max(0, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30)));
   const amount = principal * Math.pow(1 + monthlyRate / 100, months);
   return Math.round(amount - principal);
 }
@@ -41,7 +41,24 @@ export function calculateInterest(loan: Loan, endDate?: string): number {
   }
 }
 
-// Calculate loan balance (principal + interest - payments)
+// Calculate loan outstanding (principal - principal payments)
+export function calculateLoanOutstanding(loan: Loan, payments: Payment[]): number {
+  const principalPayments = payments
+    .filter(p => p.type === 'principal')
+    .reduce((sum, p) => sum + p.amount, 0);
+  return Math.max(0, loan.amount - principalPayments);
+}
+
+// Calculate interest outstanding (total interest - interest payments)
+export function calculateInterestOutstanding(loan: Loan, payments: Payment[]): number {
+  const totalInterest = calculateInterest(loan);
+  const interestPayments = payments
+    .filter(p => p.type === 'interest')
+    .reduce((sum, p) => sum + p.amount, 0);
+  return Math.max(0, totalInterest - interestPayments);
+}
+
+// Calculate loan balance (principal + interest - all payments) - DEPRECATED, use calculateLoanOutstanding and calculateInterestOutstanding
 export function calculateLoanBalance(loan: Loan, payments: Payment[]): number {
   const principalPayments = payments
     .filter(p => p.type === 'principal')
@@ -82,9 +99,18 @@ export function getInterestPaymentStatus(loan: Loan, payments: Payment[]): Inter
 
 export function isLoanOverdue(loan: Loan): boolean {
   if (loan.status === 'paid') return false;
-  const dueDate = new Date(loan.dueDate);
-  const today = new Date();
-  return today > dueDate;
+  // Check if there's interest outstanding
+  const now = new Date();
+  const startDate = new Date(loan.startDate);
+  const lastPaymentDate = loan.lastInterestPaymentDate 
+    ? new Date(loan.lastInterestPaymentDate) 
+    : startDate;
+  
+  const monthsSinceLastPayment = Math.floor(
+    (now.getTime() - lastPaymentDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+  );
+  
+  return monthsSinceLastPayment > 1; // Overdue if more than 1 month without interest payment
 }
 
 export function formatCurrency(amount: number, currencySymbol: string = '€'): string {

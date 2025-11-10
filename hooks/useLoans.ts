@@ -2,7 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Loan, Payment, LoanSummary } from '@/types/loan';
 import { saveLoans, loadLoans, savePayments, loadPayments } from '@/utils/storage';
-import { calculateLoanBalance, calculateInterest, isLoanOverdue } from '@/utils/loanCalculations';
+import { 
+  calculateLoanOutstanding, 
+  calculateInterestOutstanding, 
+  calculateInterest, 
+  isLoanOverdue 
+} from '@/utils/loanCalculations';
 
 export function useLoans() {
   const [loans, setLoans] = useState<Loan[]>([]);
@@ -84,16 +89,37 @@ export function useLoans() {
 
     // Update loan status if fully paid
     const loan = loans.find(l => l.id === payment.loanId);
-    if (loan && payment.type === 'principal') {
+    if (loan) {
       const loanPayments = updatedPayments.filter(p => p.loanId === payment.loanId);
-      const balance = calculateLoanBalance(loan, loanPayments);
-      if (balance <= 0) {
-        await updateLoan(payment.loanId, { status: 'paid' });
+      const loanOutstanding = calculateLoanOutstanding(loan, loanPayments);
+      const interestOutstanding = calculateInterestOutstanding(loan, loanPayments);
+      
+      if (loanOutstanding <= 0 && interestOutstanding <= 0) {
+        await updateLoan(payment.loanId, { 
+          status: 'paid',
+          closeDate: new Date().toISOString()
+        });
       }
     }
 
     return newPayment;
   }, [payments, loans, updateLoan]);
+
+  const updatePayment = useCallback(async (paymentId: string, updates: Partial<Payment>) => {
+    const updatedPayments = payments.map(payment =>
+      payment.id === paymentId
+        ? { ...payment, ...updates }
+        : payment
+    );
+    setPayments(updatedPayments);
+    await savePayments(updatedPayments);
+  }, [payments]);
+
+  const deletePayment = useCallback(async (paymentId: string) => {
+    const updatedPayments = payments.filter(payment => payment.id !== paymentId);
+    setPayments(updatedPayments);
+    await savePayments(updatedPayments);
+  }, [payments]);
 
   const getPaymentsForLoan = useCallback((loanId: string): Payment[] => {
     return payments.filter(payment => payment.loanId === loanId);
@@ -101,31 +127,37 @@ export function useLoans() {
 
   const getLoanSummary = useCallback((): LoanSummary => {
     const totalLent = loans.reduce((sum, loan) => sum + loan.amount, 0);
-    const totalRepaid = payments
+    
+    // Loan Repaid: sum of all principal payments
+    const loanRepaid = payments
       .filter(p => p.type === 'principal')
       .reduce((sum, payment) => sum + payment.amount, 0);
-    const interestEarned = loans.reduce((sum, loan) => {
-      return sum + calculateInterest(loan);
-    }, 0);
-    const outstandingBalance = loans.reduce((sum, loan) => {
+    
+    // Loan Outstanding: Total Lent - Loan Repaid
+    const loanOutstanding = totalLent - loanRepaid;
+    
+    // Interest Paid: sum of all interest payments
+    const interestPaid = payments
+      .filter(p => p.type === 'interest')
+      .reduce((sum, payment) => sum + payment.amount, 0);
+    
+    // Interest Outstanding: total interest accrued - interest paid
+    const interestOutstanding = loans.reduce((sum, loan) => {
       if (loan.status === 'paid') return sum;
       const loanPayments = getPaymentsForLoan(loan.id);
-      return sum + calculateLoanBalance(loan, loanPayments);
+      return sum + calculateInterestOutstanding(loan, loanPayments);
     }, 0);
 
     return {
       totalLent,
-      totalRepaid,
-      outstandingBalance,
-      interestEarned,
+      loanOutstanding,
+      loanRepaid,
+      interestOutstanding,
+      interestPaid,
     };
   }, [loans, payments, getPaymentsForLoan]);
 
-  const markAsPaid = useCallback(async (loanId: string) => {
-    await updateLoan(loanId, { status: 'paid' });
-  }, [updateLoan]);
-
-  // Update loan statuses based on due dates
+  // Update loan statuses based on interest payment status
   useEffect(() => {
     const updateStatuses = async () => {
       let hasChanges = false;
@@ -154,9 +186,10 @@ export function useLoans() {
     updateLoan,
     deleteLoan,
     addPayment,
+    updatePayment,
+    deletePayment,
     getPaymentsForLoan,
     getLoanSummary,
-    markAsPaid,
     refreshData: loadData,
   };
 }

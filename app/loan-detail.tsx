@@ -8,31 +8,46 @@ import {
   Pressable,
   Alert,
   Platform,
+  Image,
+  TextInput,
+  Modal,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
+import * as Contacts from 'expo-contacts';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
 import { IconSymbol } from '@/components/IconSymbol';
 import {
-  calculateLoanBalance,
+  calculateLoanOutstanding,
+  calculateInterestOutstanding,
   calculateInterest,
   formatCurrency,
   formatDate,
   getInterestPaymentStatus,
   calculateMonthlyInterest,
 } from '@/utils/loanCalculations';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function LoanDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const loanId = params.id as string;
 
-  const { loans, getPaymentsForLoan, markAsPaid, deleteLoan } = useLoans();
+  const { loans, getPaymentsForLoan, deleteLoan, updateLoan, updatePayment, deletePayment } = useLoans();
   const { settings } = useSettings();
   const loan = loans.find((l) => l.id === loanId);
   const payments = getPaymentsForLoan(loanId);
+
+  const [editingPayment, setEditingPayment] = useState<any>(null);
+  const [editAmount, setEditAmount] = useState('');
+  const [editDate, setEditDate] = useState(new Date());
+  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
+  const [editingBorrower, setEditingBorrower] = useState(false);
+  const [editBorrowerName, setEditBorrowerName] = useState('');
 
   if (!loan) {
     return (
@@ -42,8 +57,8 @@ export default function LoanDetailScreen() {
     );
   }
 
-  const balance = calculateLoanBalance(loan, payments);
-  const interest = calculateInterest(loan);
+  const loanOutstanding = calculateLoanOutstanding(loan, payments);
+  const interestOutstanding = calculateInterestOutstanding(loan, payments);
   const principalPayments = payments.filter(p => p.type === 'principal');
   const interestPayments = payments.filter(p => p.type === 'interest');
   const totalRepaid = principalPayments.reduce((sum, p) => sum + p.amount, 0);
@@ -55,30 +70,8 @@ export default function LoanDetailScreen() {
     router.push(`/add-payment?loanId=${loanId}`);
   };
 
-  const handleMarkAsPaid = () => {
-    Alert.alert(
-      'Mark as Paid',
-      'Are you sure you want to mark this loan as fully paid?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Mark as Paid',
-          onPress: async () => {
-            try {
-              await markAsPaid(loanId);
-              Alert.alert('Success', 'Loan marked as paid');
-            } catch (error) {
-              console.error('Error marking as paid:', error);
-              Alert.alert('Error', 'Failed to mark loan as paid');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const handleSendReminder = async () => {
-    const message = `Hi ${loan.borrowerName},\n\nHere's your loan summary:\n• Outstanding: ${formatCurrency(balance, settings.currencySymbol)}\n• Interest: ${formatCurrency(interest, settings.currencySymbol)}\n• Monthly Interest: ${formatCurrency(monthlyInterest, settings.currencySymbol)}\n• Next Due: ${formatDate(loan.dueDate)}\n\nPlease confirm or make your next payment. Thank you!`;
+    const message = `Hi ${loan.borrowerName},\n\nHere's your loan summary:\n• Loan Outstanding: ${formatCurrency(loanOutstanding, settings.currencySymbol)}\n• Interest Outstanding: ${formatCurrency(interestOutstanding, settings.currencySymbol)}\n• Monthly Interest: ${formatCurrency(monthlyInterest, settings.currencySymbol)}\n\nPlease make your payment. Thank you!`;
 
     try {
       const isAvailable = await Sharing.isAvailableAsync();
@@ -92,7 +85,6 @@ export default function LoanDetailScreen() {
         return;
       }
 
-      const FileSystem = require('expo-file-system');
       const fileUri = `${FileSystem.cacheDirectory}loan-reminder.txt`;
       
       await FileSystem.writeAsStringAsync(fileUri, message);
@@ -137,6 +129,106 @@ export default function LoanDetailScreen() {
     );
   };
 
+  const handleEditBorrower = () => {
+    setEditBorrowerName(loan.borrowerName);
+    setEditingBorrower(true);
+  };
+
+  const handleSaveBorrowerName = async () => {
+    if (editBorrowerName.trim()) {
+      await updateLoan(loanId, { borrowerName: editBorrowerName.trim() });
+      setEditingBorrower(false);
+    }
+  };
+
+  const handleSelectFromContacts = async () => {
+    try {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant contacts permission to select a contact.');
+        return;
+      }
+
+      const result = await Contacts.presentContactPickerAsync();
+      if (result && result.name) {
+        const firstName = result.firstName || '';
+        const lastName = result.lastName || '';
+        const fullName = `${firstName} ${lastName}`.trim();
+        const name = fullName || result.name;
+        
+        await updateLoan(loanId, { 
+          borrowerName: name,
+          borrowerPhoto: result.image?.uri 
+        });
+        setEditingBorrower(false);
+      }
+    } catch (error) {
+      console.error('Error selecting contact:', error);
+      Alert.alert('Error', 'Failed to select contact');
+    }
+  };
+
+  const handleChangePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant photo library permission to select a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await updateLoan(loanId, { borrowerPhoto: result.assets[0].uri });
+      }
+    } catch (error) {
+      console.error('Error selecting photo:', error);
+      Alert.alert('Error', 'Failed to select photo');
+    }
+  };
+
+  const handleEditPayment = (payment: any) => {
+    setEditingPayment(payment);
+    setEditAmount(payment.amount.toString());
+    setEditDate(new Date(payment.date));
+  };
+
+  const handleSavePaymentEdit = async () => {
+    const amountNum = parseInt(editAmount, 10);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
+    }
+
+    await updatePayment(editingPayment.id, {
+      amount: amountNum,
+      date: editDate.toISOString(),
+    });
+    setEditingPayment(null);
+  };
+
+  const handleDeletePayment = (paymentId: string) => {
+    Alert.alert(
+      'Delete Payment',
+      'Are you sure you want to delete this payment?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await deletePayment(paymentId);
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <>
       <Stack.Screen
@@ -150,8 +242,24 @@ export default function LoanDetailScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Status Badge */}
-          <View style={styles.statusContainer}>
+          {/* Borrower Info */}
+          <View style={[commonStyles.card, styles.borrowerCard]}>
+            <Pressable style={styles.photoContainer} onPress={handleChangePhoto}>
+              {loan.borrowerPhoto ? (
+                <Image source={{ uri: loan.borrowerPhoto }} style={styles.photo} />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <IconSymbol name="person.fill" size={40} color={colors.textSecondary} />
+                </View>
+              )}
+              <View style={styles.editIconContainer}>
+                <IconSymbol name="pencil.circle.fill" size={28} color={colors.primary} />
+              </View>
+            </Pressable>
+            <Pressable onPress={handleEditBorrower} style={styles.nameEditButton}>
+              <Text style={styles.borrowerNameLarge}>{loan.borrowerName}</Text>
+              <IconSymbol name="pencil" size={18} color={colors.primary} />
+            </Pressable>
             <View
               style={[
                 styles.statusBadge,
@@ -201,48 +309,21 @@ export default function LoanDetailScreen() {
                   {formatCurrency(interestStatus.amountDue, settings.currencySymbol)}
                 </Text>
               </View>
-              <Pressable 
-                style={styles.payInterestButton}
-                onPress={handleAddPayment}
-              >
-                <Text style={styles.payInterestButtonText}>Pay Interest Now</Text>
-              </Pressable>
             </View>
           )}
 
-          {/* Summary Card */}
+          {/* Dashboard Summary */}
           <View style={[commonStyles.card, styles.summaryCard]}>
+            <Text style={styles.cardTitle}>Loan Overview</Text>
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Loan Amount</Text>
-                <Text style={styles.summaryValue}>
-                  {formatCurrency(loan.amount, settings.currencySymbol)}
+                <Text style={styles.summaryLabel}>Loan Outstanding</Text>
+                <Text style={[styles.summaryValue, { color: loanOutstanding > 0 ? colors.primary : colors.secondary }]}>
+                  {formatCurrency(loanOutstanding, settings.currencySymbol)}
                 </Text>
               </View>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Balance</Text>
-                <Text
-                  style={[
-                    styles.summaryValue,
-                    { color: balance > 0 ? colors.error : colors.secondary },
-                  ]}
-                >
-                  {formatCurrency(balance, settings.currencySymbol)}
-                </Text>
-              </View>
-            </View>
-
-            <View style={commonStyles.divider} />
-
-            <View style={styles.summaryRow}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Total Interest</Text>
-                <Text style={styles.summaryValue}>
-                  {formatCurrency(interest, settings.currencySymbol)}
-                </Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Principal Repaid</Text>
+                <Text style={styles.summaryLabel}>Loan Repaid</Text>
                 <Text style={[styles.summaryValue, { color: colors.secondary }]}>
                   {formatCurrency(totalRepaid, settings.currencySymbol)}
                 </Text>
@@ -253,9 +334,9 @@ export default function LoanDetailScreen() {
 
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Monthly Interest</Text>
-                <Text style={styles.summaryValue}>
-                  {formatCurrency(monthlyInterest, settings.currencySymbol)}
+                <Text style={styles.summaryLabel}>Interest Outstanding</Text>
+                <Text style={[styles.summaryValue, { color: interestOutstanding > 0 ? colors.accent : colors.secondary }]}>
+                  {formatCurrency(interestOutstanding, settings.currencySymbol)}
                 </Text>
               </View>
               <View style={styles.summaryItem}>
@@ -267,9 +348,25 @@ export default function LoanDetailScreen() {
             </View>
           </View>
 
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <Pressable style={[buttonStyles.primary, { flex: 1 }]} onPress={handleAddPayment}>
+              <Text style={buttonStyles.text}>Add Payment</Text>
+            </Pressable>
+            <Pressable style={[buttonStyles.outline, { flex: 1 }]} onPress={handleSendReminder}>
+              <Text style={buttonStyles.textOutline}>Send Reminder</Text>
+            </Pressable>
+          </View>
+
           {/* Details Card */}
           <View style={commonStyles.card}>
             <Text style={styles.cardTitle}>Loan Details</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Loan Amount</Text>
+              <Text style={styles.detailValue}>
+                {formatCurrency(loan.amount, settings.currencySymbol)}
+              </Text>
+            </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Interest Rate</Text>
               <Text style={styles.detailValue}>
@@ -277,13 +374,21 @@ export default function LoanDetailScreen() {
               </Text>
             </View>
             <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Monthly Interest</Text>
+              <Text style={styles.detailValue}>
+                {formatCurrency(monthlyInterest, settings.currencySymbol)}
+              </Text>
+            </View>
+            <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Start Date</Text>
               <Text style={styles.detailValue}>{formatDate(loan.startDate)}</Text>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Due Date</Text>
-              <Text style={styles.detailValue}>{formatDate(loan.dueDate)}</Text>
-            </View>
+            {loan.closeDate && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Close Date</Text>
+                <Text style={styles.detailValue}>{formatDate(loan.closeDate)}</Text>
+              </View>
+            )}
             {loan.lastInterestPaymentDate && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Last Interest Payment</Text>
@@ -313,7 +418,7 @@ export default function LoanDetailScreen() {
                     <Text style={styles.paymentTypeHeader}>Principal Payments</Text>
                     {principalPayments.map((payment) => (
                       <View key={payment.id} style={styles.paymentItem}>
-                        <View>
+                        <View style={{ flex: 1 }}>
                           <Text style={styles.paymentAmount}>
                             {formatCurrency(payment.amount, settings.currencySymbol)}
                           </Text>
@@ -322,11 +427,14 @@ export default function LoanDetailScreen() {
                             <Text style={styles.paymentNote}>{payment.note}</Text>
                           )}
                         </View>
-                        <IconSymbol
-                          name="checkmark.circle.fill"
-                          size={24}
-                          color={colors.secondary}
-                        />
+                        <View style={styles.paymentActions}>
+                          <Pressable onPress={() => handleEditPayment(payment)} style={styles.actionIcon}>
+                            <IconSymbol name="pencil" size={20} color={colors.primary} />
+                          </Pressable>
+                          <Pressable onPress={() => handleDeletePayment(payment.id)} style={styles.actionIcon}>
+                            <IconSymbol name="trash" size={20} color={colors.error} />
+                          </Pressable>
+                        </View>
                       </View>
                     ))}
                   </>
@@ -337,7 +445,7 @@ export default function LoanDetailScreen() {
                     <Text style={styles.paymentTypeHeader}>Interest Payments</Text>
                     {interestPayments.map((payment) => (
                       <View key={payment.id} style={styles.paymentItem}>
-                        <View>
+                        <View style={{ flex: 1 }}>
                           <Text style={styles.paymentAmount}>
                             {formatCurrency(payment.amount, settings.currencySymbol)}
                           </Text>
@@ -346,11 +454,14 @@ export default function LoanDetailScreen() {
                             <Text style={styles.paymentNote}>{payment.note}</Text>
                           )}
                         </View>
-                        <IconSymbol
-                          name="percent"
-                          size={24}
-                          color={colors.accent}
-                        />
+                        <View style={styles.paymentActions}>
+                          <Pressable onPress={() => handleEditPayment(payment)} style={styles.actionIcon}>
+                            <IconSymbol name="pencil" size={20} color={colors.primary} />
+                          </Pressable>
+                          <Pressable onPress={() => handleDeletePayment(payment.id)} style={styles.actionIcon}>
+                            <IconSymbol name="trash" size={20} color={colors.error} />
+                          </Pressable>
+                        </View>
                       </View>
                     ))}
                   </>
@@ -358,23 +469,6 @@ export default function LoanDetailScreen() {
               </>
             )}
           </View>
-
-          {/* Action Buttons */}
-          {loan.status !== 'paid' && (
-            <>
-              <Pressable style={buttonStyles.primary} onPress={handleAddPayment}>
-                <Text style={buttonStyles.text}>Add Payment</Text>
-              </Pressable>
-
-              <Pressable style={buttonStyles.secondary} onPress={handleMarkAsPaid}>
-                <Text style={buttonStyles.text}>Mark as Paid</Text>
-              </Pressable>
-            </>
-          )}
-
-          <Pressable style={buttonStyles.outline} onPress={handleSendReminder}>
-            <Text style={buttonStyles.textOutline}>Send Reminder</Text>
-          </Pressable>
 
           {/* Delete Button */}
           <Pressable style={styles.deleteButton} onPress={handleDeleteLoan}>
@@ -384,6 +478,111 @@ export default function LoanDetailScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </View>
+
+      {/* Edit Payment Modal */}
+      <Modal
+        visible={editingPayment !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditingPayment(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Payment</Text>
+            
+            <Text style={styles.modalLabel}>Amount ({settings.currencySymbol})</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editAmount}
+              onChangeText={(text) => {
+                const cleaned = text.replace(/[^0-9]/g, '');
+                setEditAmount(cleaned);
+              }}
+              keyboardType="number-pad"
+            />
+
+            <Text style={styles.modalLabel}>Date</Text>
+            <Pressable
+              style={styles.modalDateButton}
+              onPress={() => setShowEditDatePicker(true)}
+            >
+              <Text style={styles.modalDateText}>{formatDate(editDate.toISOString())}</Text>
+              <IconSymbol name="calendar" size={20} color={colors.primary} />
+            </Pressable>
+            {showEditDatePicker && (
+              <DateTimePicker
+                value={editDate}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowEditDatePicker(Platform.OS === 'ios');
+                  if (selectedDate) {
+                    setEditDate(selectedDate);
+                  }
+                }}
+              />
+            )}
+
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setEditingPayment(null)}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, styles.modalButtonSave]}
+                onPress={handleSavePaymentEdit}
+              >
+                <Text style={styles.modalButtonTextSave}>Save</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Borrower Modal */}
+      <Modal
+        visible={editingBorrower}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditingBorrower(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Borrower</Text>
+            
+            <Text style={styles.modalLabel}>Name</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editBorrowerName}
+              onChangeText={setEditBorrowerName}
+              placeholder="Enter borrower name"
+              placeholderTextColor={colors.textSecondary}
+            />
+
+            <Pressable style={styles.contactsButton} onPress={handleSelectFromContacts}>
+              <IconSymbol name="person.crop.circle.badge.plus" size={24} color={colors.primary} />
+              <Text style={styles.contactsButtonText}>Select from Contacts</Text>
+            </Pressable>
+
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setEditingBorrower(false)}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, styles.modalButtonSave]}
+                onPress={handleSaveBorrowerName}
+              >
+                <Text style={styles.modalButtonTextSave}>Save</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -398,9 +597,44 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
   },
-  statusContainer: {
+  borrowerCard: {
     alignItems: 'center',
     marginBottom: 16,
+  },
+  photoContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  photo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  photoPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editIconContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.card,
+    borderRadius: 14,
+  },
+  nameEditButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  borrowerNameLarge: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
   },
   statusBadge: {
     paddingHorizontal: 16,
@@ -437,7 +671,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
   },
   warningLabel: {
     fontSize: 15,
@@ -448,18 +681,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: colors.error,
-  },
-  payInterestButton: {
-    backgroundColor: colors.error,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  payInterestButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
   },
   summaryCard: {
     marginBottom: 16,
@@ -480,6 +701,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
   },
   cardTitle: {
     fontSize: 18,
@@ -545,6 +771,13 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 2,
   },
+  paymentActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionIcon: {
+    padding: 4,
+  },
   deleteButton: {
     backgroundColor: 'transparent',
     paddingVertical: 14,
@@ -560,5 +793,105 @@ const styles = StyleSheet.create({
     color: colors.error,
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 20,
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  modalInput: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: colors.text,
+    marginBottom: 16,
+  },
+  modalDateButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  modalDateText: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  contactsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    marginBottom: 20,
+  },
+  contactsButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalButtonSave: {
+    backgroundColor: colors.primary,
+  },
+  modalButtonTextCancel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  modalButtonTextSave: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.card,
   },
 });

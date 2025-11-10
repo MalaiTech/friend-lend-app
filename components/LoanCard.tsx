@@ -1,9 +1,15 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Loan, Payment } from '@/types/loan';
 import { colors, commonStyles } from '@/styles/commonStyles';
-import { calculateLoanBalance, formatCurrency, formatDate, getInterestPaymentStatus } from '@/utils/loanCalculations';
+import { 
+  calculateLoanOutstanding, 
+  calculateInterestOutstanding, 
+  formatCurrency, 
+  formatDate, 
+  getInterestPaymentStatus 
+} from '@/utils/loanCalculations';
 import { IconSymbol } from './IconSymbol';
 
 interface LoanCardProps {
@@ -14,7 +20,8 @@ interface LoanCardProps {
 }
 
 export default function LoanCard({ loan, payments, onPress, currencySymbol = 'â‚¬' }: LoanCardProps) {
-  const balance = calculateLoanBalance(loan, payments);
+  const loanOutstanding = calculateLoanOutstanding(loan, payments);
+  const interestOutstanding = calculateInterestOutstanding(loan, payments);
   const interestStatus = getInterestPaymentStatus(loan, payments);
   const hasOverdueInterest = interestStatus.monthsOverdue > 0;
   
@@ -34,12 +41,20 @@ export default function LoanCard({ loan, payments, onPress, currencySymbol = 'â‚
     >
       <View style={styles.header}>
         <View style={styles.borrowerInfo}>
-          <View style={[styles.avatar, { backgroundColor: statusColor + '20' }]}>
-            <IconSymbol name="person.fill" size={24} color={statusColor} />
-          </View>
+          {/* Borrower Photo or Avatar */}
+          {loan.borrowerPhoto ? (
+            <Image 
+              source={{ uri: loan.borrowerPhoto }} 
+              style={styles.photo}
+            />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: statusColor + '20' }]}>
+              <IconSymbol name="person.fill" size={24} color={statusColor} />
+            </View>
+          )}
           <View style={styles.nameContainer}>
             <Text style={styles.borrowerName}>{loan.borrowerName}</Text>
-            <Text style={styles.dueDate}>Due: {formatDate(loan.dueDate)}</Text>
+            <Text style={styles.startDate}>Started: {formatDate(loan.startDate)}</Text>
           </View>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
@@ -63,22 +78,20 @@ export default function LoanCard({ loan, payments, onPress, currencySymbol = 'â‚
 
       <View style={styles.amountRow}>
         <View style={styles.amountItem}>
-          <Text style={styles.amountLabel}>Loan Amount</Text>
-          <Text style={styles.amountValue}>{formatCurrency(loan.amount, currencySymbol)}</Text>
+          <Text style={styles.amountLabel}>Loan Outstanding</Text>
+          <Text style={styles.amountValue}>
+            {formatCurrency(loanOutstanding, currencySymbol)}
+          </Text>
         </View>
         <View style={styles.amountItem}>
-          <Text style={styles.amountLabel}>Balance</Text>
-          <Text style={[styles.amountValue, { color: balance > 0 ? colors.error : colors.secondary }]}>
-            {formatCurrency(balance, currencySymbol)}
+          <Text style={styles.amountLabel}>Interest Outstanding</Text>
+          <Text style={[styles.amountValue, { color: interestOutstanding > 0 ? colors.accent : colors.secondary }]}>
+            {formatCurrency(interestOutstanding, currencySymbol)}
           </Text>
         </View>
       </View>
 
       <View style={styles.footer}>
-        <View style={styles.interestInfo}>
-          <IconSymbol name="percent" size={14} color={colors.textSecondary} />
-          <Text style={styles.interestText}>{loan.interestRate}% monthly ({loan.interestType})</Text>
-        </View>
         <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
       </View>
     </Pressable>
@@ -105,6 +118,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  photo: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
   avatar: {
     width: 48,
     height: 48,
@@ -122,7 +141,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 2,
   },
-  dueDate: {
+  startDate: {
     fontSize: 13,
     color: colors.textSecondary,
   },
@@ -170,22 +189,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   amountValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.text,
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  interestInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  interestText: {
-    fontSize: 13,
-    color: colors.textSecondary,
   },
 });
