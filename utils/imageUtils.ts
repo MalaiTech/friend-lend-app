@@ -33,12 +33,11 @@ export async function copyImageToLocalStorage(sourceUri: string): Promise<string
       console.log('Image successfully copied and verified, size:', fileInfo.size);
       return destinationUri;
     } else {
-      console.error('Image copy verification failed - file does not exist');
-      return undefined;
+      console.log('Image copy verification failed - file does not exist, using original URI');
+      return sourceUri;
     }
   } catch (error) {
-    console.error('Error copying image to local storage:', error);
-    console.error('Error details:', JSON.stringify(error, null, 2));
+    console.log('Could not copy image to local storage, using original URI');
     
     // If copying fails, try to use the original URI
     // This might work for some URIs but not persist
@@ -49,10 +48,11 @@ export async function copyImageToLocalStorage(sourceUri: string): Promise<string
         return sourceUri;
       }
     } catch (checkError) {
-      console.error('Original URI is not accessible either:', checkError);
+      console.log('Original URI is not accessible');
     }
     
-    return undefined;
+    // Return the original URI anyway - let the Image component handle it
+    return sourceUri;
   }
 }
 
@@ -70,6 +70,6 @@ export async function deleteLocalImage(uri: string): Promise<void> {
       }
     }
   } catch (error) {
-    console.error('Error deleting local image:', error);
+    console.log('Could not delete local image:', uri);
   }
 }

@@ -77,40 +77,28 @@ export default function AddLoanScreen() {
             id: fullContact?.id,
             imageAvailable: fullContact?.imageAvailable,
             hasImage: !!fullContact?.image,
-            imageUri: fullContact?.image?.uri,
           });
           
           if (fullContact?.imageAvailable && fullContact?.image?.uri) {
-            console.log('Contact has image, attempting to copy from:', fullContact.image.uri);
+            console.log('Contact has image, attempting to copy');
             
             // Copy the image to local storage
             const localUri = await copyImageToLocalStorage(fullContact.image.uri);
             
             if (localUri) {
-              console.log('Successfully copied contact image to:', localUri);
+              console.log('Successfully set contact image');
               setBorrowerPhoto(localUri);
-            } else {
-              console.log('Failed to copy contact image');
-              Alert.alert(
-                'Photo Not Available',
-                'Could not save the contact photo. You can add a photo manually using the photo button.'
-              );
             }
           } else {
             console.log('Contact does not have an image available');
           }
         } catch (imageError) {
-          console.error('Error fetching contact image:', imageError);
-          console.error('Image error details:', JSON.stringify(imageError, null, 2));
-          Alert.alert(
-            'Photo Not Available',
-            'Could not access the contact photo. You can add a photo manually using the photo button.'
-          );
+          console.log('Could not access contact photo');
+          // Silently continue - photo is optional
         }
       }
     } catch (error) {
       console.error('Error selecting contact:', error);
-      console.error('Contact selection error details:', JSON.stringify(error, null, 2));
       Alert.alert('Error', 'Failed to select contact. Please try again.');
     }
   };
@@ -131,14 +119,12 @@ export default function AddLoanScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        console.log('Photo selected from library:', result.assets[0].uri);
+        console.log('Photo selected from library');
         // Copy the selected image to local storage
         const localUri = await copyImageToLocalStorage(result.assets[0].uri);
         if (localUri) {
           setBorrowerPhoto(localUri);
-        } else {
-          // Fallback to original URI if copy fails
-          setBorrowerPhoto(result.assets[0].uri);
+          console.log('Photo set successfully');
         }
       }
     } catch (error) {
