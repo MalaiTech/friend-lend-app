@@ -13,7 +13,7 @@ import { LineChart } from 'react-native-chart-kit';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
-import { formatCurrency } from '@/utils/loanCalculations';
+import { formatCurrency, calculateInterest } from '@/utils/loanCalculations';
 
 type Period = '1month' | '6months' | '1year' | '5years';
 
@@ -91,19 +91,29 @@ export default function MetricGraphScreen() {
           .reduce((sum, p) => sum + p.amount, 0);
       } else if (metricId === 'interestOutstanding') {
         // Calculate interest outstanding at this date
-        const activeLoans = loans.filter(l => 
-          new Date(l.startDate) <= date && 
-          (!l.closeDate || new Date(l.closeDate) > date)
-        );
+        const activeLoans = loans.filter(l => {
+          const loanStart = new Date(l.startDate);
+          const loanClose = l.closeDate ? new Date(l.closeDate) : null;
+          return loanStart <= date && (!loanClose || loanClose > date);
+        });
+        
         value = activeLoans.reduce((sum, loan) => {
+          // Get all payments for this loan up to the date
           const loanPayments = payments.filter(p => 
             p.loanId === loan.id && new Date(p.date) <= date
           );
-          const totalInterest = calculateInterestAtDate(loan, date.toISOString());
+          
+          // Calculate total interest accrued up to this date
+          const totalInterest = calculateInterest(loan, date.toISOString());
+          
+          // Calculate interest paid up to this date
           const interestPaid = loanPayments
             .filter(p => p.type === 'interest')
             .reduce((s, p) => s + p.amount, 0);
-          return sum + Math.max(0, totalInterest - interestPaid);
+          
+          // Interest outstanding is the difference
+          const outstanding = Math.max(0, totalInterest - interestPaid);
+          return sum + outstanding;
         }, 0);
       } else if (metricId === 'interestPaid') {
         // Sum of all interest payments up to this date
@@ -126,29 +136,21 @@ export default function MetricGraphScreen() {
       }
     }
 
+    // Ensure we always have at least one data point
+    if (dataPoints.length === 0) {
+      dataPoints.push(0);
+      labels.push('N/A');
+    }
+
     return {
       labels,
       datasets: [
         {
-          data: dataPoints.length > 0 ? dataPoints : [0],
+          data: dataPoints,
         },
       ],
     };
   }, [selectedPeriod, metricId, loans, payments]);
-
-  // Helper function to calculate interest at a specific date
-  const calculateInterestAtDate = (loan: any, endDate: string): number => {
-    const start = new Date(loan.startDate);
-    const end = new Date(endDate);
-    const months = Math.max(0, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30)));
-    
-    if (loan.interestType === 'simple') {
-      return Math.round((loan.amount * loan.interestRate * months) / 100);
-    } else {
-      const amount = loan.amount * Math.pow(1 + loan.interestRate / 100, months);
-      return Math.round(amount - loan.amount);
-    }
-  };
 
   return (
     <>
