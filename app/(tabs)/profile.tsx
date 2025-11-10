@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Image } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -404,8 +404,20 @@ export default function SettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Settings',
-          headerLargeTitle: true,
+          headerTitle: () => (
+            <View style={styles.headerContainer}>
+              <View style={styles.headerIconContainer}>
+                <Image 
+                  source={require('@/assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png')} 
+                  style={styles.headerIcon}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.headerTitle}>Settings</Text>
+            </View>
+          ),
+          headerLargeTitle: false,
+          headerTransparent: false,
         }}
       />
       <View style={commonStyles.container}>
@@ -520,6 +532,42 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerIconContainer: {
+    width: 36,
+    height: 36,
+    marginRight: 12,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#2196F3',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  headerIcon: {
+    width: 32,
+    height: 32,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    letterSpacing: 0.5,
+  },
   scrollContent: {
     paddingTop: 16,
     paddingHorizontal: 16,
