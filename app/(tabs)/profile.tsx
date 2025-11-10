@@ -348,9 +348,12 @@ export default function SettingsScreen() {
       
       // Save CSV to file
       const fileName = `friendlend-loans-${Date.now()}.csv`;
-      const fileUri = `${FileSystem.Paths.cache}/${fileName}`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
       
-      await FileSystem.writeAsStringAsync(fileUri, csv);
+      console.log('Writing CSV to:', fileUri);
+      await FileSystem.writeAsStringAsync(fileUri, csv, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
       
       console.log('CSV generated at:', fileUri);
       
