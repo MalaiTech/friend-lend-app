@@ -12,7 +12,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import * as Contacts from 'expo-contacts';
@@ -37,10 +37,18 @@ export default function LoanDetailScreen() {
   const params = useLocalSearchParams();
   const loanId = params.id as string;
 
-  const { loans, getPaymentsForLoan, deleteLoan, updateLoan, updatePayment, deletePayment } = useLoans();
+  const { loans, getPaymentsForLoan, deleteLoan, updateLoan, updatePayment, deletePayment, refreshData } = useLoans();
   const { settings } = useSettings();
   const loan = loans.find((l) => l.id === loanId);
   const payments = getPaymentsForLoan(loanId);
+
+  // Refresh data when screen comes into focus (e.g., after adding a payment)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Loan detail screen focused, refreshing data...');
+      refreshData();
+    }, [refreshData])
+  );
 
   const [editingPayment, setEditingPayment] = useState<any>(null);
   const [editAmount, setEditAmount] = useState('');
@@ -49,6 +57,16 @@ export default function LoanDetailScreen() {
   const [editingBorrower, setEditingBorrower] = useState(false);
   const [editBorrowerName, setEditBorrowerName] = useState('');
 
+  // Recalculate values when data changes
+  const loanOutstanding = loan ? calculateLoanOutstanding(loan, payments) : 0;
+  const interestOutstanding = loan ? calculateInterestOutstanding(loan, payments) : 0;
+  const principalPayments = payments.filter(p => p.type === 'principal');
+  const interestPayments = payments.filter(p => p.type === 'interest');
+  const totalRepaid = principalPayments.reduce((sum, p) => sum + p.amount, 0);
+  const totalInterestPaid = interestPayments.reduce((sum, p) => sum + p.amount, 0);
+  const interestStatus = loan ? getInterestPaymentStatus(loan, payments) : { monthsOverdue: 0, amountDue: 0 };
+  const monthlyInterest = loan ? calculateMonthlyInterest(loan.amount, loan.interestRate) : 0;
+
   if (!loan) {
     return (
       <View style={commonStyles.container}>
@@ -56,15 +74,6 @@ export default function LoanDetailScreen() {
       </View>
     );
   }
-
-  const loanOutstanding = calculateLoanOutstanding(loan, payments);
-  const interestOutstanding = calculateInterestOutstanding(loan, payments);
-  const principalPayments = payments.filter(p => p.type === 'principal');
-  const interestPayments = payments.filter(p => p.type === 'interest');
-  const totalRepaid = principalPayments.reduce((sum, p) => sum + p.amount, 0);
-  const totalInterestPaid = interestPayments.reduce((sum, p) => sum + p.amount, 0);
-  const interestStatus = getInterestPaymentStatus(loan, payments);
-  const monthlyInterest = calculateMonthlyInterest(loan.amount, loan.interestRate);
 
   const handleAddPayment = () => {
     router.push(`/add-payment?loanId=${loanId}`);
