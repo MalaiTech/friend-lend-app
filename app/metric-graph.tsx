@@ -15,19 +15,19 @@ import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
 import { formatCurrency, calculateInterest } from '@/utils/loanCalculations';
 
-type Period = '1month' | '6months' | '1year' | '5years';
+type Period = 'months' | 'quarters' | 'years';
 
 interface PeriodOption {
   id: Period;
   label: string;
-  months: number;
+  numPoints: number;
+  intervalMonths: number;
 }
 
 const PERIOD_OPTIONS: PeriodOption[] = [
-  { id: '1month', label: '1 Month', months: 1 },
-  { id: '6months', label: '6 Months', months: 6 },
-  { id: '1year', label: '1 Year', months: 12 },
-  { id: '5years', label: '5 Years', months: 60 },
+  { id: 'months', label: 'Months', numPoints: 6, intervalMonths: 1 },
+  { id: 'quarters', label: 'Quarters', numPoints: 4, intervalMonths: 3 },
+  { id: 'years', label: 'Years', numPoints: 5, intervalMonths: 12 },
 ];
 
 export default function MetricGraphScreen() {
@@ -38,7 +38,7 @@ export default function MetricGraphScreen() {
   
   const { loans, payments, getPaymentsForLoan } = useLoans();
   const { settings } = useSettings();
-  const [selectedPeriod, setSelectedPeriod] = useState<Period>('1year');
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>('months');
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -49,23 +49,8 @@ export default function MetricGraphScreen() {
     const dataPoints: number[] = [];
     const labels: string[] = [];
 
-    // Determine the number of data points and interval
-    let numPoints: number;
-    let intervalMonths: number;
-    
-    if (period.id === '1month') {
-      numPoints = 4; // 4 weeks
-      intervalMonths = 0.25;
-    } else if (period.id === '6months') {
-      numPoints = 6; // 6 months
-      intervalMonths = 1;
-    } else if (period.id === '1year') {
-      numPoints = 4; // 4 quarters
-      intervalMonths = 3;
-    } else {
-      numPoints = 5; // 5 years
-      intervalMonths = 12;
-    }
+    const numPoints = period.numPoints;
+    const intervalMonths = period.intervalMonths;
 
     // Generate data points going backwards in time
     for (let i = numPoints - 1; i >= 0; i--) {
@@ -124,14 +109,13 @@ export default function MetricGraphScreen() {
       
       dataPoints.push(value);
       
-      // Generate label
-      if (period.id === '1month') {
-        labels.push(`W${numPoints - i}`);
-      } else if (period.id === '6months') {
+      // Generate label based on period type
+      if (period.id === 'months') {
         labels.push(date.toLocaleDateString('en-US', { month: 'short' }));
-      } else if (period.id === '1year') {
-        labels.push(`Q${Math.floor(date.getMonth() / 3) + 1}`);
-      } else {
+      } else if (period.id === 'quarters') {
+        const quarter = Math.floor(date.getMonth() / 3) + 1;
+        labels.push(`Q${quarter}`);
+      } else if (period.id === 'years') {
         labels.push(date.getFullYear().toString());
       }
     }

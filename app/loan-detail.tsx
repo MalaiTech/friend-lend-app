@@ -468,16 +468,8 @@ export default function LoanDetailScreen() {
             </View>
             {loan.closeDate && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Close Date</Text>
+                <Text style={styles.detailLabel}>Closure Date</Text>
                 <Text style={styles.detailValue}>{formatDate(loan.closeDate)}</Text>
-              </View>
-            )}
-            {loan.lastInterestPaymentDate && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Last Interest Payment</Text>
-                <Text style={styles.detailValue}>
-                  {formatDate(loan.lastInterestPaymentDate)}
-                </Text>
               </View>
             )}
             {loan.notes && (
