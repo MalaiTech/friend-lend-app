@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform, Pressable, Image } from 'react-native';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
@@ -67,9 +67,21 @@ export default function DashboardScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'FriendLend',
-          headerLargeTitle: true,
+          headerTitle: () => (
+            <View style={styles.headerContainer}>
+              <View style={styles.headerIconContainer}>
+                <Image 
+                  source={require('@/assets/images/final_quest_240x240.png')} 
+                  style={styles.headerIcon}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.headerTitle}>FriendLend</Text>
+            </View>
+          ),
+          headerLargeTitle: false,
           headerTransparent: false,
+          headerLeft: () => null,
         }}
       />
       <View style={commonStyles.container}>
@@ -253,6 +265,31 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerIconContainer: {
+    width: 32,
+    height: 32,
+    marginRight: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerIcon: {
+    width: 28,
+    height: 28,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    letterSpacing: 0.3,
+  },
   scrollContent: {
     paddingTop: 16,
   },
