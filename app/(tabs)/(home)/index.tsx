@@ -71,7 +71,7 @@ export default function DashboardScreen() {
             <View style={styles.headerContainer}>
               <View style={styles.headerIconContainer}>
                 <Image 
-                  source={require('@/assets/images/final_quest_240x240.png')} 
+                  source={require('@/assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png')} 
                   style={styles.headerIcon}
                   resizeMode="contain"
                 />
@@ -271,24 +271,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerIconContainer: {
-    width: 32,
-    height: 32,
-    marginRight: 10,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    marginRight: 12,
+    borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: colors.primary + '15',
+    backgroundColor: '#E3F2FD',
     justifyContent: 'center',
     alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#2196F3',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   headerIcon: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   scrollContent: {
     paddingTop: 16,
