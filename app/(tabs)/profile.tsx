@@ -404,6 +404,7 @@ export default function SettingsScreen() {
     <>
       <Stack.Screen
         options={{
+          headerShown: true,
           headerTitle: () => (
             <View style={styles.headerContainer}>
               <View style={styles.headerIconContainer}>
