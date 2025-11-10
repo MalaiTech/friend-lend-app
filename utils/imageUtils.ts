@@ -1,5 +1,5 @@
 
-import { File, Paths } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system';
 
 /**
  * Copy an image from a source URI (like a contact photo) to the app's document directory
@@ -11,27 +11,47 @@ export async function copyImageToLocalStorage(sourceUri: string): Promise<string
     
     // Generate a unique filename
     const timestamp = Date.now();
-    const filename = `contact_photo_${timestamp}.jpg`;
+    const random = Math.floor(Math.random() * 10000);
+    const filename = `contact_photo_${timestamp}_${random}.jpg`;
     
-    // Create a file in the document directory using the new FileSystem API
-    const file = new File(Paths.document, filename);
+    // Create destination path in document directory
+    const destinationUri = `${FileSystem.documentDirectory}${filename}`;
     
-    // Copy the file
-    await file.copy(sourceUri);
+    console.log('Destination URI:', destinationUri);
     
-    console.log('Image copied to:', file.uri);
+    // Copy the file using FileSystem
+    await FileSystem.copyAsync({
+      from: sourceUri,
+      to: destinationUri,
+    });
+    
+    console.log('Image copied successfully to:', destinationUri);
     
     // Verify the file exists
-    const exists = await file.exists();
-    if (exists) {
-      console.log('Image successfully copied and verified');
-      return file.uri;
+    const fileInfo = await FileSystem.getInfoAsync(destinationUri);
+    if (fileInfo.exists) {
+      console.log('Image successfully copied and verified, size:', fileInfo.size);
+      return destinationUri;
     } else {
-      console.error('Image copy verification failed');
+      console.error('Image copy verification failed - file does not exist');
       return undefined;
     }
   } catch (error) {
     console.error('Error copying image to local storage:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    
+    // If copying fails, try to use the original URI
+    // This might work for some URIs but not persist
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(sourceUri);
+      if (fileInfo.exists) {
+        console.log('Original URI is accessible, using it directly');
+        return sourceUri;
+      }
+    } catch (checkError) {
+      console.error('Original URI is not accessible either:', checkError);
+    }
+    
     return undefined;
   }
 }
@@ -42,12 +62,10 @@ export async function copyImageToLocalStorage(sourceUri: string): Promise<string
 export async function deleteLocalImage(uri: string): Promise<void> {
   try {
     // Only delete if it's in our document directory
-    const documentPath = Paths.document;
-    if (uri.startsWith(documentPath)) {
-      const file = new File(uri);
-      const exists = await file.exists();
-      if (exists) {
-        await file.delete();
+    if (uri.startsWith(FileSystem.documentDirectory || '')) {
+      const fileInfo = await FileSystem.getInfoAsync(uri);
+      if (fileInfo.exists) {
+        await FileSystem.deleteAsync(uri);
         console.log('Deleted local image:', uri);
       }
     }

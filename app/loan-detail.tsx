@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { File, Paths } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import * as Contacts from 'expo-contacts';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
@@ -88,17 +88,17 @@ export default function LoanDetailScreen() {
         return;
       }
 
-      // Create a file in the cache directory using the new FileSystem API
+      // Create a file in the cache directory
       const fileName = `loan-reminder-${Date.now()}.txt`;
-      const file = new File(Paths.cache, fileName);
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
       
       // Write the message to the file
-      await file.write(message);
+      await FileSystem.writeAsStringAsync(fileUri, message);
       
-      console.log('File created at:', file.uri);
+      console.log('File created at:', fileUri);
       
       // Share the file
-      await Sharing.shareAsync(file.uri, {
+      await Sharing.shareAsync(fileUri, {
         mimeType: 'text/plain',
         dialogTitle: 'Send Loan Reminder',
         UTI: 'public.plain-text',
@@ -180,11 +180,11 @@ export default function LoanDetailScreen() {
       const result = await Contacts.presentContactPickerAsync();
       
       if (result) {
-        console.log('Contact selected:', result);
+        console.log('Contact selected from picker:', result);
         
         const updateData: any = {};
         
-        // Extract name from the initial result
+        // Extract name from the picker result
         let fullName = '';
         if (result.firstName || result.lastName) {
           const firstName = result.firstName || '';
@@ -194,50 +194,54 @@ export default function LoanDetailScreen() {
           fullName = result.name;
         }
         
-        // Set the name immediately from the picker result
+        // Set the name
         if (fullName) {
           updateData.borrowerName = fullName;
-          console.log('Set borrower name from picker:', fullName);
+          console.log('Set borrower name:', fullName);
         }
         
-        // Try to get the photo from the picker result
-        if (result.imageAvailable) {
-          try {
-            // Get full contact details with image
-            const fullContact = await Contacts.getContactByIdAsync(result.id, [
-              Contacts.Fields.Image,
-            ]);
+        // Now fetch the full contact details including the image
+        try {
+          console.log('Fetching full contact details for ID:', result.id);
+          
+          const fullContact = await Contacts.getContactByIdAsync(result.id, [
+            Contacts.Fields.Image,
+            Contacts.Fields.ImageAvailable,
+          ]);
+          
+          console.log('Full contact retrieved:', {
+            id: fullContact?.id,
+            imageAvailable: fullContact?.imageAvailable,
+            hasImage: !!fullContact?.image,
+            imageUri: fullContact?.image?.uri,
+          });
+          
+          if (fullContact?.imageAvailable && fullContact?.image?.uri) {
+            console.log('Contact has image, attempting to copy from:', fullContact.image.uri);
             
-            console.log('Full contact details:', fullContact);
+            // Copy the image to local storage
+            const localUri = await copyImageToLocalStorage(fullContact.image.uri);
             
-            if (fullContact && fullContact.image && fullContact.image.uri) {
-              console.log('Contact image URI:', fullContact.image.uri);
-              
-              // Copy the image to local storage
-              const localUri = await copyImageToLocalStorage(fullContact.image.uri);
-              
-              if (localUri) {
-                console.log('Setting photo from local copy:', localUri);
-                updateData.borrowerPhoto = localUri;
-              } else {
-                console.log('Failed to copy contact image to local storage');
-                Alert.alert(
-                  'Photo Not Available',
-                  'Could not access the contact photo. You can add a photo manually.'
-                );
-              }
+            if (localUri) {
+              console.log('Successfully copied contact image to:', localUri);
+              updateData.borrowerPhoto = localUri;
             } else {
-              console.log('No image found in full contact details');
+              console.log('Failed to copy contact image');
+              Alert.alert(
+                'Photo Not Available',
+                'Could not save the contact photo. You can add a photo manually using the photo button.'
+              );
             }
-          } catch (imageError) {
-            console.error('Error fetching contact image:', imageError);
-            Alert.alert(
-              'Photo Not Available',
-              'Could not access the contact photo. You can add a photo manually.'
-            );
+          } else {
+            console.log('Contact does not have an image available');
           }
-        } else {
-          console.log('Contact has no image available');
+        } catch (imageError) {
+          console.error('Error fetching contact image:', imageError);
+          console.error('Image error details:', JSON.stringify(imageError, null, 2));
+          Alert.alert(
+            'Photo Not Available',
+            'Could not access the contact photo. You can add a photo manually using the photo button.'
+          );
         }
         
         // Update the loan
@@ -248,7 +252,8 @@ export default function LoanDetailScreen() {
       }
     } catch (error) {
       console.error('Error selecting contact:', error);
-      Alert.alert('Error', 'Failed to select contact');
+      console.error('Contact selection error details:', JSON.stringify(error, null, 2));
+      Alert.alert('Error', 'Failed to select contact. Please try again.');
     }
   };
 
@@ -268,11 +273,13 @@ export default function LoanDetailScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
+        console.log('Photo selected from library:', result.assets[0].uri);
         // Copy the selected image to local storage
         const localUri = await copyImageToLocalStorage(result.assets[0].uri);
         if (localUri) {
           await updateLoan(loanId, { borrowerPhoto: localUri });
         } else {
+          // Fallback to original URI if copy fails
           await updateLoan(loanId, { borrowerPhoto: result.assets[0].uri });
         }
       }
