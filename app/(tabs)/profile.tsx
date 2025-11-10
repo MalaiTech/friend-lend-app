@@ -13,6 +13,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { useLoans } from '@/hooks/useLoans';
 import { getCurrencyByCode } from '@/utils/currencies';
 import { formatCurrency, formatDate, calculateLoanOutstanding, calculateInterestOutstanding } from '@/utils/loanCalculations';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -401,119 +402,125 @@ export default function SettingsScreen() {
   const currency = getCurrencyByCode(settings.currency);
 
   return (
-    <View style={commonStyles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Currency Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Currency</Text>
-          <View style={commonStyles.card}>
-            <Pressable style={styles.settingItem} onPress={handleCurrencySettings}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
-                  <IconSymbol name="dollarsign.circle" size={24} color={colors.secondary} />
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={commonStyles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Currency Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Currency</Text>
+            <View style={commonStyles.card}>
+              <Pressable style={styles.settingItem} onPress={handleCurrencySettings}>
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
+                    <IconSymbol name="dollarsign.circle" size={24} color={colors.secondary} />
+                  </View>
+                  <View>
+                    <Text style={styles.settingTitle}>Default Currency</Text>
+                    <Text style={styles.settingSubtitle}>
+                      {currency?.name || 'Euro'} ({settings.currencySymbol})
+                    </Text>
+                  </View>
                 </View>
-                <View>
-                  <Text style={styles.settingTitle}>Default Currency</Text>
-                  <Text style={styles.settingSubtitle}>
-                    {currency?.name || 'Euro'} ({settings.currencySymbol})
-                  </Text>
-                </View>
-              </View>
-              <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Security Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Security</Text>
-          <View style={commonStyles.card}>
-            <Pressable
-              style={styles.settingItem}
-              onPress={handleEnableBiometric}
-              disabled={!biometricAvailable}
-            >
-              <View style={styles.settingLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-                  <IconSymbol name="faceid" size={24} color={colors.primary} />
-                </View>
-                <View>
-                  <Text style={styles.settingTitle}>Biometric Lock</Text>
-                  <Text style={styles.settingSubtitle}>
-                    {biometricAvailable ? 'Secure app with Face ID/Touch ID' : 'Not available on this device'}
-                  </Text>
-                </View>
-              </View>
-              <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Data Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Data Management</Text>
-          <View style={commonStyles.card}>
-            <Pressable style={styles.settingItem} onPress={handleExportData}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
-                  <IconSymbol name="square.and.arrow.up" size={24} color={colors.secondary} />
-                </View>
-                <View>
-                  <Text style={styles.settingTitle}>Export Data</Text>
-                  <Text style={styles.settingSubtitle}>Export loans as PDF or CSV</Text>
-                </View>
-              </View>
-              <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-            </Pressable>
-
-            <View style={styles.divider} />
-
-            <Pressable style={styles.settingItem} onPress={handleClearData}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
-                  <IconSymbol name="trash" size={24} color={colors.error} />
-                </View>
-                <View>
-                  <Text style={[styles.settingTitle, { color: colors.error }]}>Clear All Data</Text>
-                  <Text style={styles.settingSubtitle}>Delete all loans and payments</Text>
-                </View>
-              </View>
-              <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* About Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
-          <View style={commonStyles.card}>
-            <View style={styles.aboutItem}>
-              <Text style={styles.aboutLabel}>Version</Text>
-              <Text style={styles.aboutValue}>1.0.0</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.aboutItem}>
-              <Text style={styles.aboutLabel}>Storage</Text>
-              <Text style={styles.aboutValue}>Local Only</Text>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
             </View>
           </View>
-        </View>
 
-        {/* Info Text */}
-        <Text style={styles.infoText}>
-          FriendLend stores all data locally on your device. Use the export feature to backup your data.
-        </Text>
-      </ScrollView>
-    </View>
+          {/* Security Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Security</Text>
+            <View style={commonStyles.card}>
+              <Pressable
+                style={styles.settingItem}
+                onPress={handleEnableBiometric}
+                disabled={!biometricAvailable}
+              >
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                    <IconSymbol name="faceid" size={24} color={colors.primary} />
+                  </View>
+                  <View>
+                    <Text style={styles.settingTitle}>Biometric Lock</Text>
+                    <Text style={styles.settingSubtitle}>
+                      {biometricAvailable ? 'Secure app with Face ID/Touch ID' : 'Not available on this device'}
+                    </Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Data Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Data Management</Text>
+            <View style={commonStyles.card}>
+              <Pressable style={styles.settingItem} onPress={handleExportData}>
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
+                    <IconSymbol name="square.and.arrow.up" size={24} color={colors.secondary} />
+                  </View>
+                  <View>
+                    <Text style={styles.settingTitle}>Export Data</Text>
+                    <Text style={styles.settingSubtitle}>Export loans as PDF or CSV</Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+
+              <View style={styles.divider} />
+
+              <Pressable style={styles.settingItem} onPress={handleClearData}>
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
+                    <IconSymbol name="trash" size={24} color={colors.error} />
+                  </View>
+                  <View>
+                    <Text style={[styles.settingTitle, { color: colors.error }]}>Clear All Data</Text>
+                    <Text style={styles.settingSubtitle}>Delete all loans and payments</Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* About Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>About</Text>
+            <View style={commonStyles.card}>
+              <View style={styles.aboutItem}>
+                <Text style={styles.aboutLabel}>Version</Text>
+                <Text style={styles.aboutValue}>1.0.0</Text>
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.aboutItem}>
+                <Text style={styles.aboutLabel}>Storage</Text>
+                <Text style={styles.aboutValue}>Local Only</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Info Text */}
+          <Text style={styles.infoText}>
+            FriendLend stores all data locally on your device. Use the export feature to backup your data.
+          </Text>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   scrollContent: {
-    paddingTop: 16,
+    paddingTop: 24,
     paddingHorizontal: 16,
     paddingBottom: 100,
   },

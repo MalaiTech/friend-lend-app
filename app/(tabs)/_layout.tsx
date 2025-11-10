@@ -67,11 +67,7 @@ export default function TabLayout() {
         <Stack.Screen 
           name="profile" 
           options={{
-            headerShown: true,
-            headerTitle: () => <HeaderTitle />,
-            headerLargeTitle: false,
-            headerTransparent: false,
-            headerLeft: () => null,
+            headerShown: false,
           }}
         />
       </Stack>
