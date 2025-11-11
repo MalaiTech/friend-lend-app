@@ -8,7 +8,7 @@ import {
   Pressable,
   Dimensions,
 } from 'react-native';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { LineChart } from 'react-native-chart-kit';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
@@ -37,10 +37,18 @@ export default function MetricGraphScreen() {
   const metricTitle = params.title as string;
   
   const { loans, payments, getPaymentsForLoan } = useLoans();
-  const { settings } = useSettings();
+  const { settings, reloadSettings } = useSettings();
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('months');
 
   const screenWidth = Dimensions.get('window').width;
+
+  // Reload settings when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Metric graph screen focused, reloading settings...');
+      reloadSettings();
+    }, [reloadSettings])
+  );
 
   // Calculate historical data for the selected metric
   const chartData = useMemo(() => {

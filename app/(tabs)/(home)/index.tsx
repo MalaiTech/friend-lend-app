@@ -13,7 +13,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 export default function DashboardScreen() {
   const router = useRouter();
   const { loans, payments, loading, getLoanSummary, getPaymentsForLoan, refreshData } = useLoans();
-  const { settings } = useSettings();
+  const { settings, reloadSettings } = useSettings();
   const [refreshing, setRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'date'>('name');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'paid' | 'overdue'>('all');
@@ -21,17 +21,19 @@ export default function DashboardScreen() {
   
   const summary = getLoanSummary();
 
-  // Refresh data when screen comes into focus
+  // Refresh data and settings when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      console.log('Dashboard screen focused, refreshing data...');
+      console.log('Dashboard screen focused, refreshing data and settings...');
       refreshData();
-    }, [refreshData])
+      reloadSettings();
+    }, [refreshData, reloadSettings])
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
     await refreshData();
+    await reloadSettings();
     setRefreshing(false);
   };
 

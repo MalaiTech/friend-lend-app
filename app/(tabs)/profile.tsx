@@ -17,23 +17,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { settings } = useSettings();
+  const { settings, reloadSettings } = useSettings();
   const { refreshData, loans, payments, getPaymentsForLoan } = useLoans();
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const isNavigatingRef = useRef(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     checkBiometricAvailability();
   }, []);
 
-  // Force re-render when screen comes into focus
+  // Reload settings when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      console.log('Profile screen focused, current currency:', settings.currency);
-      // Trigger a re-render by updating a key
-      setRefreshKey(prev => prev + 1);
-    }, [settings.currency])
+      console.log('Profile screen focused, reloading settings...');
+      reloadSettings();
+    }, [reloadSettings])
   );
 
   const checkBiometricAvailability = async () => {
@@ -520,7 +518,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={commonStyles.container} key={refreshKey}>
+      <View style={commonStyles.container}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}

@@ -38,16 +38,17 @@ export default function LoanDetailScreen() {
   const loanId = params.id as string;
 
   const { loans, getPaymentsForLoan, deleteLoan, updateLoan, updatePayment, deletePayment, refreshData } = useLoans();
-  const { settings } = useSettings();
+  const { settings, reloadSettings } = useSettings();
   const loan = loans.find((l) => l.id === loanId);
   const payments = getPaymentsForLoan(loanId);
 
-  // Refresh data when screen comes into focus (e.g., after adding a payment)
+  // Refresh data and settings when screen comes into focus (e.g., after adding a payment)
   useFocusEffect(
     React.useCallback(() => {
-      console.log('Loan detail screen focused, refreshing data...');
+      console.log('Loan detail screen focused, refreshing data and settings...');
       refreshData();
-    }, [refreshData])
+      reloadSettings();
+    }, [refreshData, reloadSettings])
   );
 
   const [editingPayment, setEditingPayment] = useState<any>(null);

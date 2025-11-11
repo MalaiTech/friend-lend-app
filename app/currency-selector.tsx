@@ -32,18 +32,16 @@ export default function CurrencySelectorScreen() {
       return;
     }
 
-    console.log('Currency selected:', currency.code);
+    console.log('Currency selected:', currency.code, currency.symbol);
     setIsSelecting(true);
     
     try {
-      // Save currency and wait for it to complete
+      // Save currency
       await setCurrency(currency.code, currency.symbol);
-      console.log('Currency saved successfully, navigating back');
+      console.log('Currency saved successfully');
       
-      // Small delay to ensure state has propagated
-      setTimeout(() => {
-        router.back();
-      }, 100);
+      // Navigate back immediately
+      router.back();
     } catch (error) {
       console.error('Error selecting currency:', error);
       setIsSelecting(false);
