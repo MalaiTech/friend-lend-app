@@ -5,8 +5,8 @@ import { saveSettings, loadSettings } from '@/utils/storage';
 
 export function useSettings() {
   const [settings, setSettings] = useState<AppSettings>({
-    currency: 'USD',
-    currencySymbol: '$',
+    currency: 'EUR',
+    currencySymbol: '€',
     supabaseEnabled: false,
   });
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,15 @@ export function useSettings() {
         console.log('Loaded settings:', loadedSettings);
         setSettings(loadedSettings);
       } else {
-        console.log('No saved settings found, using defaults');
+        console.log('No saved settings found, using EUR as default');
+        // Save default settings
+        const defaultSettings: AppSettings = {
+          currency: 'EUR',
+          currencySymbol: '€',
+          supabaseEnabled: false,
+        };
+        await saveSettings(defaultSettings);
+        setSettings(defaultSettings);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -32,43 +40,45 @@ export function useSettings() {
     }
   };
 
-  const setCurrency = useCallback((currencyCode: string, currencySymbol: string) => {
+  const setCurrency = useCallback(async (currencyCode: string, currencySymbol: string) => {
     console.log('setCurrency called:', currencyCode, currencySymbol);
     
-    // Update state immediately
-    setSettings((prevSettings) => {
+    try {
       const updatedSettings = { 
-        ...prevSettings, 
+        ...settings, 
         currency: currencyCode, 
         currencySymbol 
       };
       
-      console.log('Updating currency to:', updatedSettings);
+      // Save to storage first
+      await saveSettings(updatedSettings);
+      console.log('Currency saved to storage');
       
-      // Save to storage asynchronously (fire and forget)
-      saveSettings(updatedSettings)
-        .then(() => console.log('Currency saved to storage'))
-        .catch((error) => console.error('Error saving currency:', error));
-      
-      return updatedSettings;
-    });
-  }, []);
+      // Then update state
+      setSettings(updatedSettings);
+      console.log('Currency state updated');
+    } catch (error) {
+      console.error('Error saving currency:', error);
+    }
+  }, [settings]);
 
-  const updateSettings = useCallback((updates: Partial<AppSettings>) => {
+  const updateSettings = useCallback(async (updates: Partial<AppSettings>) => {
     console.log('updateSettings called:', updates);
     
-    setSettings((prevSettings) => {
-      const updatedSettings = { ...prevSettings, ...updates };
-      console.log('Updating settings:', updatedSettings);
+    try {
+      const updatedSettings = { ...settings, ...updates };
       
-      // Save to storage asynchronously
-      saveSettings(updatedSettings)
-        .then(() => console.log('Settings saved to storage'))
-        .catch((error) => console.error('Error saving settings:', error));
+      // Save to storage first
+      await saveSettings(updatedSettings);
+      console.log('Settings saved to storage');
       
-      return updatedSettings;
-    });
-  }, []);
+      // Then update state
+      setSettings(updatedSettings);
+      console.log('Settings state updated');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    }
+  }, [settings]);
 
   const setSupabaseEnabled = useCallback((enabled: boolean) => {
     updateSettings({ supabaseEnabled: enabled });

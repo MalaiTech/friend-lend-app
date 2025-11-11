@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,14 @@ export default function CurrencySelectorScreen() {
   const router = useRouter();
   const { settings, setCurrency } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
+  const isNavigatingRef = useRef(false);
+
+  // Prevent navigation loops
+  useEffect(() => {
+    return () => {
+      isNavigatingRef.current = false;
+    };
+  }, []);
 
   const filteredCurrencies = CURRENCIES.filter(
     (currency) =>
@@ -25,20 +33,39 @@ export default function CurrencySelectorScreen() {
       currency.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelectCurrency = (currency: Currency) => {
+  const handleSelectCurrency = async (currency: Currency) => {
+    // Prevent multiple selections
+    if (isNavigatingRef.current) {
+      console.log('Already navigating, ignoring selection');
+      return;
+    }
+
     console.log('Currency selected:', currency.code);
+    isNavigatingRef.current = true;
     
-    // Update currency immediately
-    setCurrency(currency.code, currency.symbol);
-    
-    // Navigate back
-    if (router.canGoBack()) {
-      router.back();
+    try {
+      // Save currency
+      await setCurrency(currency.code, currency.symbol);
+      console.log('Currency saved successfully');
+      
+      // Navigate back
+      if (router.canGoBack()) {
+        router.back();
+      }
+    } catch (error) {
+      console.error('Error selecting currency:', error);
+      isNavigatingRef.current = false;
     }
   };
 
   const handleCancel = () => {
+    if (isNavigatingRef.current) {
+      return;
+    }
+    
     console.log('Currency selection cancelled');
+    isNavigatingRef.current = true;
+    
     if (router.canGoBack()) {
       router.back();
     }
@@ -51,6 +78,7 @@ export default function CurrencySelectorScreen() {
       <Pressable
         style={[styles.currencyItem, isSelected && styles.currencyItemSelected]}
         onPress={() => handleSelectCurrency(item)}
+        disabled={isNavigatingRef.current}
       >
         <View style={styles.currencyInfo}>
           <Text style={styles.currencySymbol}>{item.symbol}</Text>

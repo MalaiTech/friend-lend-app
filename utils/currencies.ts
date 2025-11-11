@@ -6,8 +6,8 @@ export interface Currency {
 }
 
 export const CURRENCIES: Currency[] = [
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
   { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
   { code: 'GBP', symbol: '£', name: 'British Pound' },
   { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
   { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
@@ -51,9 +51,4 @@ export const CURRENCIES: Currency[] = [
 
 export function getCurrencyByCode(code: string): Currency | undefined {
   return CURRENCIES.find(c => c.code === code);
-}
-
-export function getDefaultCurrency(): Currency {
-  // Return USD as default instead of EUR
-  return CURRENCIES.find(c => c.code === 'USD') || CURRENCIES[0];
 }
