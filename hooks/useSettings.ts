@@ -43,43 +43,49 @@ export function useSettings() {
     console.log('setCurrency called:', currencyCode, currencySymbol);
     
     try {
-      const updatedSettings: AppSettings = { 
-        ...settings, 
-        currency: currencyCode, 
-        currencySymbol 
-      };
+      // Use functional update to avoid stale closure
+      const updatedSettings: AppSettings = await new Promise((resolve) => {
+        setSettings((prevSettings) => {
+          const newSettings = { 
+            ...prevSettings, 
+            currency: currencyCode, 
+            currencySymbol 
+          };
+          resolve(newSettings);
+          return newSettings;
+        });
+      });
       
-      // Save to storage first
+      // Save to storage after state update
       await saveSettings(updatedSettings);
-      console.log('Currency saved to storage');
-      
-      // Then update state
-      setSettings(updatedSettings);
-      console.log('Currency state updated');
+      console.log('Currency saved to storage:', updatedSettings);
     } catch (error) {
       console.error('Error saving currency:', error);
       throw error;
     }
-  }, [settings]);
+  }, []); // Empty dependency array - uses functional updates
 
   const updateSettings = useCallback(async (updates: Partial<AppSettings>) => {
     console.log('updateSettings called:', updates);
     
     try {
-      const updatedSettings: AppSettings = { ...settings, ...updates };
+      // Use functional update to avoid stale closure
+      const updatedSettings: AppSettings = await new Promise((resolve) => {
+        setSettings((prevSettings) => {
+          const newSettings = { ...prevSettings, ...updates };
+          resolve(newSettings);
+          return newSettings;
+        });
+      });
       
-      // Save to storage first
+      // Save to storage after state update
       await saveSettings(updatedSettings);
-      console.log('Settings saved to storage');
-      
-      // Then update state
-      setSettings(updatedSettings);
-      console.log('Settings state updated');
+      console.log('Settings saved to storage:', updatedSettings);
     } catch (error) {
       console.error('Error saving settings:', error);
       throw error;
     }
-  }, [settings]);
+  }, []); // Empty dependency array - uses functional updates
 
   const setSupabaseEnabled = useCallback((enabled: boolean) => {
     updateSettings({ supabaseEnabled: enabled });

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -21,10 +21,20 @@ export default function SettingsScreen() {
   const { refreshData, loans, payments, getPaymentsForLoan } = useLoans();
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const isNavigatingRef = useRef(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     checkBiometricAvailability();
   }, []);
+
+  // Force re-render when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Profile screen focused, current currency:', settings.currency);
+      // Trigger a re-render by updating a key
+      setRefreshKey(prev => prev + 1);
+    }, [settings.currency])
+  );
 
   const checkBiometricAvailability = async () => {
     const compatible = await LocalAuthentication.hasHardwareAsync();
@@ -510,7 +520,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={commonStyles.container}>
+      <View style={commonStyles.container} key={refreshKey}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
