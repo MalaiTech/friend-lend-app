@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -19,17 +19,6 @@ export default function CurrencySelectorScreen() {
   const { settings, setCurrency } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
   const isSelectingRef = useRef(false);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    // Mark component as mounted
-    isMountedRef.current = true;
-    
-    return () => {
-      // Mark component as unmounted
-      isMountedRef.current = false;
-    };
-  }, []);
 
   const filteredCurrencies = CURRENCIES.filter(
     (currency) =>
@@ -37,7 +26,7 @@ export default function CurrencySelectorScreen() {
       currency.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelectCurrency = (currency: Currency) => {
+  const handleSelectCurrency = async (currency: Currency) => {
     // Prevent multiple selections
     if (isSelectingRef.current) {
       console.log('Already selecting, ignoring...');
@@ -56,18 +45,22 @@ export default function CurrencySelectorScreen() {
     isSelectingRef.current = true;
     console.log('Selecting currency:', currency.code);
     
-    // Navigate back FIRST, then update settings
-    if (router.canGoBack()) {
-      router.back();
-    }
-    
-    // Update settings after navigation with a small delay
-    setTimeout(() => {
-      if (isMountedRef.current) {
-        console.log('Updating currency setting');
-        setCurrency(currency.code, currency.symbol);
+    try {
+      // Update settings FIRST (synchronously)
+      await setCurrency(currency.code, currency.symbol);
+      console.log('Currency updated successfully');
+      
+      // Small delay to ensure state is saved
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Then navigate back
+      if (router.canGoBack()) {
+        router.back();
       }
-    }, 100);
+    } catch (error) {
+      console.error('Error updating currency:', error);
+      isSelectingRef.current = false;
+    }
   };
 
   const handleCancel = () => {

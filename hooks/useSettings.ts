@@ -11,17 +11,10 @@ export function useSettings() {
     supabaseEnabled: false,
   });
   const [loading, setLoading] = useState(true);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isSavingRef = useRef(false);
 
   useEffect(() => {
     loadSettingsData();
-    
-    return () => {
-      // Clear any pending save operations
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
   }, []);
 
   const loadSettingsData = async () => {
@@ -29,6 +22,7 @@ export function useSettings() {
       setLoading(true);
       const loadedSettings = await loadSettings();
       if (loadedSettings) {
+        console.log('Loaded settings:', loadedSettings);
         setSettings(loadedSettings);
       } else {
         // Set default currency
@@ -38,6 +32,7 @@ export function useSettings() {
           currencySymbol: defaultCurrency.symbol,
           supabaseEnabled: false,
         };
+        console.log('Using default settings:', defaultSettings);
         setSettings(defaultSettings);
         await saveSettings(defaultSettings);
       }
@@ -49,38 +44,37 @@ export function useSettings() {
   };
 
   const updateSettings = useCallback(async (updates: Partial<AppSettings>) => {
-    try {
-      // Clear any pending save
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
+    // Prevent concurrent saves
+    if (isSavingRef.current) {
+      console.log('Already saving settings, waiting...');
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
 
-      // Update state immediately
-      setSettings((prevSettings) => {
-        const updatedSettings = { ...prevSettings, ...updates };
-        console.log('Updating settings:', updatedSettings);
-        
-        // Debounce the save operation
-        saveTimeoutRef.current = setTimeout(() => {
-          saveSettings(updatedSettings)
-            .then(() => {
-              console.log('Settings saved successfully');
-            })
-            .catch((error) => {
-              console.error('Error saving settings:', error);
-            });
-        }, 300);
-        
-        return updatedSettings;
-      });
+    try {
+      isSavingRef.current = true;
+      
+      // Create the updated settings object
+      const updatedSettings = { ...settings, ...updates };
+      console.log('Updating settings to:', updatedSettings);
+      
+      // Update state first
+      setSettings(updatedSettings);
+      
+      // Save to storage
+      await saveSettings(updatedSettings);
+      console.log('Settings saved successfully');
+      
     } catch (error) {
       console.error('Error updating settings:', error);
+      throw error;
+    } finally {
+      isSavingRef.current = false;
     }
-  }, []);
+  }, [settings]);
 
-  const setCurrency = useCallback((currencyCode: string, currencySymbol: string) => {
+  const setCurrency = useCallback(async (currencyCode: string, currencySymbol: string) => {
     console.log('setCurrency called with:', currencyCode, currencySymbol);
-    updateSettings({ currency: currencyCode, currencySymbol });
+    await updateSettings({ currency: currencyCode, currencySymbol });
   }, [updateSettings]);
 
   const setSupabaseEnabled = useCallback(async (enabled: boolean) => {
