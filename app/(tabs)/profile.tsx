@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
@@ -20,6 +20,9 @@ export default function SettingsScreen() {
   const { settings } = useSettings();
   const { refreshData, loans, payments, getPaymentsForLoan } = useLoans();
   const [biometricAvailable, setBiometricAvailable] = useState(false);
+  
+  // Use ref to prevent multiple navigations
+  const isNavigatingRef = useRef(false);
 
   useEffect(() => {
     checkBiometricAvailability();
@@ -50,7 +53,21 @@ export default function SettingsScreen() {
   };
 
   const handleCurrencySettings = () => {
+    // Prevent multiple navigations
+    if (isNavigatingRef.current) {
+      console.log('Already navigating to currency selector, ignoring');
+      return;
+    }
+    
+    console.log('Navigating to currency selector');
+    isNavigatingRef.current = true;
+    
     router.push('/currency-selector');
+    
+    // Reset the flag after a delay
+    setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 1000);
   };
 
   const generateCSV = () => {
@@ -512,7 +529,7 @@ export default function SettingsScreen() {
                   <View>
                     <Text style={styles.settingTitle}>Default Currency</Text>
                     <Text style={styles.settingSubtitle}>
-                      {currency?.name || 'Euro'} ({settings.currencySymbol})
+                      {currency?.name || 'US Dollar'} ({settings.currencySymbol})
                     </Text>
                   </View>
                 </View>

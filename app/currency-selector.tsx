@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,17 +18,13 @@ export default function CurrencySelectorScreen() {
   const router = useRouter();
   const { settings, setCurrency } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
-  const hasNavigatedRef = useRef(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
-  // Store the initial currency to avoid re-renders affecting the comparison
-  const initialCurrencyRef = useRef(settings.currency);
-
-  // Reset navigation flag when component mounts
-  useEffect(() => {
-    console.log('CurrencySelectorScreen mounted with currency:', settings.currency);
-    hasNavigatedRef.current = false;
-    initialCurrencyRef.current = settings.currency;
-  }, []);
+  // Use ref to track if we've already navigated back
+  const hasNavigatedBackRef = useRef(false);
+  
+  // Store the current currency at mount time
+  const currentCurrencyRef = useRef(settings.currency);
 
   const filteredCurrencies = CURRENCIES.filter(
     (currency) =>
@@ -37,28 +33,42 @@ export default function CurrencySelectorScreen() {
   );
 
   const handleSelectCurrency = async (currency: Currency) => {
-    // Prevent multiple navigations
-    if (hasNavigatedRef.current) {
-      console.log('Already navigated, ignoring selection');
+    // Prevent multiple selections
+    if (isProcessing || hasNavigatedBackRef.current) {
+      console.log('Already processing or navigated, ignoring selection');
       return;
     }
     
     console.log('Currency selected:', currency.code);
-    hasNavigatedRef.current = true;
+    setIsProcessing(true);
+    hasNavigatedBackRef.current = true;
     
-    // Update currency
-    await setCurrency(currency.code, currency.symbol);
-    
-    // Navigate back
-    if (router.canGoBack()) {
-      router.back();
+    try {
+      // Only update if currency actually changed
+      if (currentCurrencyRef.current !== currency.code) {
+        console.log('Updating currency from', currentCurrencyRef.current, 'to', currency.code);
+        await setCurrency(currency.code, currency.symbol);
+      } else {
+        console.log('Currency unchanged, skipping update');
+      }
+      
+      // Navigate back after a small delay to ensure state is updated
+      setTimeout(() => {
+        if (router.canGoBack()) {
+          router.back();
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Error selecting currency:', error);
+      setIsProcessing(false);
+      hasNavigatedBackRef.current = false;
     }
   };
 
   const handleCancel = () => {
-    if (!hasNavigatedRef.current) {
+    if (!hasNavigatedBackRef.current) {
       console.log('Cancelling currency selection');
-      hasNavigatedRef.current = true;
+      hasNavigatedBackRef.current = true;
       if (router.canGoBack()) {
         router.back();
       }
@@ -66,13 +76,13 @@ export default function CurrencySelectorScreen() {
   };
 
   const renderCurrencyItem = ({ item }: { item: Currency }) => {
-    const isSelected = item.code === initialCurrencyRef.current;
+    const isSelected = item.code === currentCurrencyRef.current;
 
     return (
       <Pressable
         style={[styles.currencyItem, isSelected && styles.currencyItemSelected]}
         onPress={() => handleSelectCurrency(item)}
-        disabled={hasNavigatedRef.current}
+        disabled={isProcessing}
       >
         <View style={styles.currencyInfo}>
           <Text style={styles.currencySymbol}>{item.symbol}</Text>
@@ -95,7 +105,7 @@ export default function CurrencySelectorScreen() {
           title: 'Select Currency',
           presentation: 'modal',
           headerLeft: () => (
-            <Pressable onPress={handleCancel}>
+            <Pressable onPress={handleCancel} disabled={isProcessing}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </Pressable>
           ),
@@ -112,12 +122,12 @@ export default function CurrencySelectorScreen() {
             placeholder="Search currencies..."
             placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
-            editable={!hasNavigatedRef.current}
+            editable={!isProcessing}
           />
           {searchQuery.length > 0 && (
             <Pressable 
               onPress={() => setSearchQuery('')}
-              disabled={hasNavigatedRef.current}
+              disabled={isProcessing}
             >
               <IconSymbol name="xmark.circle.fill" size={20} color={colors.textSecondary} />
             </Pressable>
@@ -131,7 +141,7 @@ export default function CurrencySelectorScreen() {
           keyExtractor={(item) => item.code}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          scrollEnabled={!hasNavigatedRef.current}
+          scrollEnabled={!isProcessing}
         />
       </View>
     </>

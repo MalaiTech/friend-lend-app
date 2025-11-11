@@ -10,7 +10,10 @@ export function useSettings() {
     supabaseEnabled: false,
   });
   const [loading, setLoading] = useState(true);
+  
+  // Use ref to prevent concurrent saves
   const isSavingRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadSettingsData();
@@ -42,13 +45,18 @@ export function useSettings() {
       return;
     }
     
+    // Clear any pending save timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
     try {
       isSavingRef.current = true;
       
-      // Update state with functional update to avoid stale closures
+      // Update state immediately with functional update
       setSettings((prevSettings) => {
         // Skip if currency hasn't changed
-        if (prevSettings.currency === currencyCode) {
+        if (prevSettings.currency === currencyCode && prevSettings.currencySymbol === currencySymbol) {
           console.log('Currency unchanged, skipping update');
           return prevSettings;
         }
@@ -61,19 +69,23 @@ export function useSettings() {
         
         console.log('Updating currency to:', updatedSettings);
         
-        // Save to storage asynchronously (don't await to avoid blocking)
+        // Save to storage asynchronously without blocking
         saveSettings(updatedSettings)
           .then(() => console.log('Currency saved to storage'))
-          .catch((error) => console.error('Error saving currency:', error));
+          .catch((error) => console.error('Error saving currency:', error))
+          .finally(() => {
+            // Reset the saving flag after a delay
+            saveTimeoutRef.current = setTimeout(() => {
+              isSavingRef.current = false;
+            }, 500);
+          });
         
         return updatedSettings;
       });
       
-    } finally {
-      // Reset the saving flag after a short delay
-      setTimeout(() => {
-        isSavingRef.current = false;
-      }, 500);
+    } catch (error) {
+      console.error('Error in setCurrency:', error);
+      isSavingRef.current = false;
     }
   }, []);
 
@@ -83,6 +95,11 @@ export function useSettings() {
     if (isSavingRef.current) {
       console.log('Already saving settings, skipping...');
       return;
+    }
+
+    // Clear any pending save timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
 
     try {
@@ -95,15 +112,19 @@ export function useSettings() {
         // Save to storage asynchronously
         saveSettings(updatedSettings)
           .then(() => console.log('Settings saved to storage'))
-          .catch((error) => console.error('Error saving settings:', error));
+          .catch((error) => console.error('Error saving settings:', error))
+          .finally(() => {
+            saveTimeoutRef.current = setTimeout(() => {
+              isSavingRef.current = false;
+            }, 500);
+          });
         
         return updatedSettings;
       });
       
-    } finally {
-      setTimeout(() => {
-        isSavingRef.current = false;
-      }, 500);
+    } catch (error) {
+      console.error('Error in updateSettings:', error);
+      isSavingRef.current = false;
     }
   }, []);
 
