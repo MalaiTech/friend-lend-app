@@ -3,12 +3,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { AppSettings } from '@/types/loan';
 import { saveSettings, loadSettings } from '@/utils/storage';
 
+const DEFAULT_SETTINGS: AppSettings = {
+  currency: 'EUR',
+  currencySymbol: '€',
+  supabaseEnabled: false,
+};
+
 export function useSettings() {
-  const [settings, setSettings] = useState<AppSettings>({
-    currency: 'EUR',
-    currencySymbol: '€',
-    supabaseEnabled: false,
-  });
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,16 +27,13 @@ export function useSettings() {
       } else {
         console.log('No saved settings found, using EUR as default');
         // Save default settings
-        const defaultSettings: AppSettings = {
-          currency: 'EUR',
-          currencySymbol: '€',
-          supabaseEnabled: false,
-        };
-        await saveSettings(defaultSettings);
-        setSettings(defaultSettings);
+        await saveSettings(DEFAULT_SETTINGS);
+        setSettings(DEFAULT_SETTINGS);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
+      // Fallback to default settings on error
+      setSettings(DEFAULT_SETTINGS);
     } finally {
       setLoading(false);
     }
@@ -44,7 +43,7 @@ export function useSettings() {
     console.log('setCurrency called:', currencyCode, currencySymbol);
     
     try {
-      const updatedSettings = { 
+      const updatedSettings: AppSettings = { 
         ...settings, 
         currency: currencyCode, 
         currencySymbol 
@@ -59,6 +58,7 @@ export function useSettings() {
       console.log('Currency state updated');
     } catch (error) {
       console.error('Error saving currency:', error);
+      throw error;
     }
   }, [settings]);
 
@@ -66,7 +66,7 @@ export function useSettings() {
     console.log('updateSettings called:', updates);
     
     try {
-      const updatedSettings = { ...settings, ...updates };
+      const updatedSettings: AppSettings = { ...settings, ...updates };
       
       // Save to storage first
       await saveSettings(updatedSettings);
@@ -77,6 +77,7 @@ export function useSettings() {
       console.log('Settings state updated');
     } catch (error) {
       console.error('Error saving settings:', error);
+      throw error;
     }
   }, [settings]);
 

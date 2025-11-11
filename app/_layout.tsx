@@ -58,6 +58,19 @@ export default function RootLayout() {
               headerShown: true,
             }}
           />
+          <Stack.Screen
+            name="currency-selector"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="metric-graph"
+            options={{
+              headerShown: true,
+            }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
