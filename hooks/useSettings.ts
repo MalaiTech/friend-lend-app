@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppSettings } from '@/types/loan';
 import { saveSettings, loadSettings } from '@/utils/storage';
 import { getDefaultCurrency } from '@/utils/currencies';
@@ -11,6 +11,7 @@ export function useSettings() {
     supabaseEnabled: false,
   });
   const [loading, setLoading] = useState(true);
+  const isSavingRef = useRef(false);
 
   useEffect(() => {
     loadSettingsData();
@@ -41,12 +42,33 @@ export function useSettings() {
   };
 
   const updateSettings = useCallback(async (updates: Partial<AppSettings>) => {
-    const updatedSettings = { ...settings, ...updates };
-    setSettings(updatedSettings);
-    await saveSettings(updatedSettings);
+    // Prevent concurrent updates
+    if (isSavingRef.current) {
+      console.log('Settings update already in progress, skipping...');
+      return;
+    }
+
+    isSavingRef.current = true;
+    
+    try {
+      const updatedSettings = { ...settings, ...updates };
+      console.log('Updating settings:', updatedSettings);
+      
+      // Save to storage first
+      await saveSettings(updatedSettings);
+      
+      // Then update state
+      setSettings(updatedSettings);
+      console.log('Settings updated successfully');
+    } catch (error) {
+      console.error('Error updating settings:', error);
+    } finally {
+      isSavingRef.current = false;
+    }
   }, [settings]);
 
   const setCurrency = useCallback(async (currencyCode: string, currencySymbol: string) => {
+    console.log('setCurrency called with:', currencyCode, currencySymbol);
     await updateSettings({ currency: currencyCode, currencySymbol });
   }, [updateSettings]);
 

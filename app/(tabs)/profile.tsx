@@ -54,10 +54,20 @@ export default function SettingsScreen() {
   };
 
   const generateCSV = () => {
-    // CSV Header
-    let csv = 'Borrower,Loan Amount,Interest Rate,Interest Type,Start Date,Status,Loan Outstanding,Interest Outstanding,Total Repaid,Interest Paid,Closure Date,Notes\n';
+    // Escape quotes and commas in text fields
+    const escapeCsvField = (field: string) => {
+      if (!field) return '';
+      const fieldStr = String(field);
+      if (fieldStr.includes(',') || fieldStr.includes('"') || fieldStr.includes('\n')) {
+        return `"${fieldStr.replace(/"/g, '""')}"`;
+      }
+      return fieldStr;
+    };
+
+    // CSV Header - includes loan details and payment details
+    let csv = 'Borrower,Loan Amount,Interest Rate,Interest Type,Start Date,Loan Status,Loan Outstanding,Interest Outstanding,Total Repaid,Interest Paid,Closure Date,Loan Notes,Payment Date,Payment Amount,Payment Type,Payment Notes\n';
     
-    // Add loan data
+    // Add loan data with payments
     loans.forEach(loan => {
       const loanPayments = getPaymentsForLoan(loan.id);
       const loanOutstanding = calculateLoanOutstanding(loan, loanPayments);
@@ -67,26 +77,35 @@ export default function SettingsScreen() {
       const totalRepaid = principalPayments.reduce((sum, p) => sum + p.amount, 0);
       const interestPaid = interestPayments.reduce((sum, p) => sum + p.amount, 0);
       
-      // Escape quotes and commas in text fields
-      const escapeCsvField = (field: string) => {
-        if (field.includes(',') || field.includes('"') || field.includes('\n')) {
-          return `"${field.replace(/"/g, '""')}"`;
-        }
-        return field;
-      };
+      // Common loan fields
+      const loanFields = [
+        escapeCsvField(loan.borrowerName),
+        loan.amount,
+        `${loan.interestRate}%`,
+        loan.interestType,
+        formatDate(loan.startDate),
+        loan.status,
+        loanOutstanding,
+        interestOutstanding,
+        totalRepaid,
+        interestPaid,
+        loan.closeDate ? formatDate(loan.closeDate) : 'N/A',
+        escapeCsvField(loan.notes || ''),
+      ].join(',');
       
-      csv += `${escapeCsvField(loan.borrowerName)},`;
-      csv += `${loan.amount},`;
-      csv += `${loan.interestRate}%,`;
-      csv += `${loan.interestType},`;
-      csv += `${formatDate(loan.startDate)},`;
-      csv += `${loan.status},`;
-      csv += `${loanOutstanding},`;
-      csv += `${interestOutstanding},`;
-      csv += `${totalRepaid},`;
-      csv += `${interestPaid},`;
-      csv += `${loan.closeDate ? formatDate(loan.closeDate) : 'N/A'},`;
-      csv += `${escapeCsvField(loan.notes || '')}\n`;
+      // If loan has payments, add a row for each payment
+      if (loanPayments.length > 0) {
+        loanPayments.forEach(payment => {
+          csv += `${loanFields},`;
+          csv += `${formatDate(payment.date)},`;
+          csv += `${payment.amount},`;
+          csv += `${payment.type},`;
+          csv += `${escapeCsvField(payment.note || '')}\n`;
+        });
+      } else {
+        // If no payments, add loan row with empty payment fields
+        csv += `${loanFields},N/A,N/A,N/A,N/A\n`;
+      }
     });
     
     return csv;
@@ -105,30 +124,38 @@ export default function SettingsScreen() {
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             padding: 20px;
-            color: #333;
+            color: #000000;
           }
           h1 {
-            color: #007AFF;
-            border-bottom: 2px solid #007AFF;
+            color: #000000;
+            border-bottom: 2px solid #000000;
             padding-bottom: 10px;
           }
           h2 {
-            color: #555;
+            color: #000000;
             margin-top: 30px;
+          }
+          h3 {
+            color: #000000;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 16px;
           }
           .summary {
             background-color: #f5f5f5;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 30px;
+            border: 1px solid #000000;
           }
           .summary-item {
             display: flex;
             justify-content: space-between;
             margin: 8px 0;
+            color: #000000;
           }
           .loan-card {
-            border: 1px solid #ddd;
+            border: 1px solid #000000;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 20px;
@@ -139,10 +166,13 @@ export default function SettingsScreen() {
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            border-bottom: 1px solid #000000;
+            padding-bottom: 10px;
           }
           .loan-name {
             font-size: 18px;
             font-weight: bold;
+            color: #000000;
           }
           .status {
             padding: 4px 12px;
@@ -150,18 +180,8 @@ export default function SettingsScreen() {
             font-size: 12px;
             font-weight: bold;
             text-transform: uppercase;
-          }
-          .status-active {
-            background-color: #007AFF20;
-            color: #007AFF;
-          }
-          .status-paid {
-            background-color: #34C75920;
-            color: #34C759;
-          }
-          .status-overdue {
-            background-color: #FF3B3020;
-            color: #FF3B30;
+            border: 1px solid #000000;
+            color: #000000;
           }
           .loan-details {
             display: grid;
@@ -175,17 +195,62 @@ export default function SettingsScreen() {
           }
           .detail-label {
             font-size: 12px;
-            color: #888;
+            color: #000000;
+            font-weight: normal;
           }
           .detail-value {
             font-size: 14px;
             font-weight: 600;
             margin-top: 2px;
+            color: #000000;
+          }
+          .payments-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #000000;
+          }
+          .payment-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #cccccc;
+            color: #000000;
+          }
+          .payment-info {
+            flex: 1;
+          }
+          .payment-date {
+            font-weight: 600;
+            color: #000000;
+          }
+          .payment-type {
+            font-size: 12px;
+            color: #000000;
+            text-transform: capitalize;
+          }
+          .payment-amount {
+            font-weight: bold;
+            color: #000000;
+          }
+          .payment-note {
+            font-size: 12px;
+            font-style: italic;
+            color: #000000;
+            margin-top: 4px;
+          }
+          .notes {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            font-style: italic;
+            color: #000000;
+            border: 1px solid #000000;
           }
           .footer {
             margin-top: 40px;
             text-align: center;
-            color: #888;
+            color: #000000;
             font-size: 12px;
           }
         </style>
@@ -242,13 +307,11 @@ export default function SettingsScreen() {
       const principalPayments = loanPayments.filter(p => p.type === 'principal');
       const totalRepaid = principalPayments.reduce((sum, p) => sum + p.amount, 0);
       
-      const statusClass = loan.status === 'paid' ? 'status-paid' : loan.status === 'overdue' ? 'status-overdue' : 'status-active';
-      
       html += `
         <div class="loan-card">
           <div class="loan-header">
             <div class="loan-name">${loan.borrowerName}</div>
-            <div class="status ${statusClass}">${loan.status}</div>
+            <div class="status">${loan.status}</div>
           </div>
           <div class="loan-details">
             <div class="detail-item">
@@ -282,9 +345,38 @@ export default function SettingsScreen() {
             </div>
             ` : ''}
           </div>
-          ${loan.notes ? `<p style="margin-top: 10px; font-style: italic; color: #666;">${loan.notes}</p>` : ''}
-        </div>
+          ${loan.notes ? `<div class="notes"><strong>Loan Notes:</strong> ${loan.notes}</div>` : ''}
       `;
+      
+      // Add payments section
+      if (loanPayments.length > 0) {
+        html += `
+          <div class="payments-section">
+            <h3>Payment History (${loanPayments.length} payments)</h3>
+        `;
+        
+        // Sort payments by date (most recent first)
+        const sortedPayments = [...loanPayments].sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        
+        sortedPayments.forEach(payment => {
+          html += `
+            <div class="payment-item">
+              <div class="payment-info">
+                <div class="payment-date">${formatDate(payment.date)}</div>
+                <div class="payment-type">${payment.type} payment</div>
+                ${payment.note ? `<div class="payment-note">${payment.note}</div>` : ''}
+              </div>
+              <div class="payment-amount">${formatCurrency(payment.amount, currencySymbol)}</div>
+            </div>
+          `;
+        });
+        
+        html += `</div>`;
+      }
+      
+      html += `</div>`;
     });
     
     html += `
