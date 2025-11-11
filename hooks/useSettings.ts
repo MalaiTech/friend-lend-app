@@ -51,21 +51,29 @@ export function useSettings() {
     isSavingRef.current = true;
     
     try {
-      const updatedSettings = { ...settings, ...updates };
-      console.log('Updating settings:', updatedSettings);
-      
-      // Save to storage first
-      await saveSettings(updatedSettings);
-      
-      // Then update state
-      setSettings(updatedSettings);
-      console.log('Settings updated successfully');
+      // Use functional update to avoid dependency on settings
+      setSettings((prevSettings) => {
+        const updatedSettings = { ...prevSettings, ...updates };
+        console.log('Updating settings:', updatedSettings);
+        
+        // Save to storage asynchronously
+        saveSettings(updatedSettings).then(() => {
+          console.log('Settings saved successfully');
+        }).catch((error) => {
+          console.error('Error saving settings:', error);
+        });
+        
+        return updatedSettings;
+      });
     } catch (error) {
       console.error('Error updating settings:', error);
     } finally {
-      isSavingRef.current = false;
+      // Reset the flag after a short delay to ensure state update completes
+      setTimeout(() => {
+        isSavingRef.current = false;
+      }, 100);
     }
-  }, [settings]);
+  }, []); // No dependencies - stable callback
 
   const setCurrency = useCallback(async (currencyCode: string, currencySymbol: string) => {
     console.log('setCurrency called with:', currencyCode, currencySymbol);
