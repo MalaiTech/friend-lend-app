@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -18,13 +18,6 @@ export default function CurrencySelectorScreen() {
   const router = useRouter();
   const { settings, setCurrency } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Use ref to track if we've already navigated back
-  const hasNavigatedBackRef = useRef(false);
-  
-  // Store the current currency at mount time
-  const currentCurrencyRef = useRef(settings.currency);
 
   const filteredCurrencies = CURRENCIES.filter(
     (currency) =>
@@ -32,57 +25,32 @@ export default function CurrencySelectorScreen() {
       currency.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelectCurrency = async (currency: Currency) => {
-    // Prevent multiple selections
-    if (isProcessing || hasNavigatedBackRef.current) {
-      console.log('Already processing or navigated, ignoring selection');
-      return;
-    }
-    
+  const handleSelectCurrency = (currency: Currency) => {
     console.log('Currency selected:', currency.code);
-    setIsProcessing(true);
-    hasNavigatedBackRef.current = true;
     
-    try {
-      // Only update if currency actually changed
-      if (currentCurrencyRef.current !== currency.code) {
-        console.log('Updating currency from', currentCurrencyRef.current, 'to', currency.code);
-        await setCurrency(currency.code, currency.symbol);
-      } else {
-        console.log('Currency unchanged, skipping update');
-      }
-      
-      // Navigate back after a small delay to ensure state is updated
-      setTimeout(() => {
-        if (router.canGoBack()) {
-          router.back();
-        }
-      }, 100);
-    } catch (error) {
-      console.error('Error selecting currency:', error);
-      setIsProcessing(false);
-      hasNavigatedBackRef.current = false;
+    // Update currency immediately
+    setCurrency(currency.code, currency.symbol);
+    
+    // Navigate back
+    if (router.canGoBack()) {
+      router.back();
     }
   };
 
   const handleCancel = () => {
-    if (!hasNavigatedBackRef.current) {
-      console.log('Cancelling currency selection');
-      hasNavigatedBackRef.current = true;
-      if (router.canGoBack()) {
-        router.back();
-      }
+    console.log('Currency selection cancelled');
+    if (router.canGoBack()) {
+      router.back();
     }
   };
 
   const renderCurrencyItem = ({ item }: { item: Currency }) => {
-    const isSelected = item.code === currentCurrencyRef.current;
+    const isSelected = item.code === settings.currency;
 
     return (
       <Pressable
         style={[styles.currencyItem, isSelected && styles.currencyItemSelected]}
         onPress={() => handleSelectCurrency(item)}
-        disabled={isProcessing}
       >
         <View style={styles.currencyInfo}>
           <Text style={styles.currencySymbol}>{item.symbol}</Text>
@@ -105,7 +73,7 @@ export default function CurrencySelectorScreen() {
           title: 'Select Currency',
           presentation: 'modal',
           headerLeft: () => (
-            <Pressable onPress={handleCancel} disabled={isProcessing}>
+            <Pressable onPress={handleCancel}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </Pressable>
           ),
@@ -122,13 +90,9 @@ export default function CurrencySelectorScreen() {
             placeholder="Search currencies..."
             placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
-            editable={!isProcessing}
           />
           {searchQuery.length > 0 && (
-            <Pressable 
-              onPress={() => setSearchQuery('')}
-              disabled={isProcessing}
-            >
+            <Pressable onPress={() => setSearchQuery('')}>
               <IconSymbol name="xmark.circle.fill" size={20} color={colors.textSecondary} />
             </Pressable>
           )}
@@ -141,7 +105,6 @@ export default function CurrencySelectorScreen() {
           keyExtractor={(item) => item.code}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          scrollEnabled={!isProcessing}
         />
       </View>
     </>
