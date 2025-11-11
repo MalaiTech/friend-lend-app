@@ -11,10 +11,17 @@ export function useSettings() {
     supabaseEnabled: false,
   });
   const [loading, setLoading] = useState(true);
-  const isSavingRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadSettingsData();
+    
+    return () => {
+      // Clear any pending save operations
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, []);
 
   const loadSettingsData = async () => {
@@ -42,42 +49,38 @@ export function useSettings() {
   };
 
   const updateSettings = useCallback(async (updates: Partial<AppSettings>) => {
-    // Prevent concurrent updates
-    if (isSavingRef.current) {
-      console.log('Settings update already in progress, skipping...');
-      return;
-    }
-
-    isSavingRef.current = true;
-    
     try {
-      // Use functional update to avoid dependency on settings
+      // Clear any pending save
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      // Update state immediately
       setSettings((prevSettings) => {
         const updatedSettings = { ...prevSettings, ...updates };
         console.log('Updating settings:', updatedSettings);
         
-        // Save to storage asynchronously
-        saveSettings(updatedSettings).then(() => {
-          console.log('Settings saved successfully');
-        }).catch((error) => {
-          console.error('Error saving settings:', error);
-        });
+        // Debounce the save operation
+        saveTimeoutRef.current = setTimeout(() => {
+          saveSettings(updatedSettings)
+            .then(() => {
+              console.log('Settings saved successfully');
+            })
+            .catch((error) => {
+              console.error('Error saving settings:', error);
+            });
+        }, 300);
         
         return updatedSettings;
       });
     } catch (error) {
       console.error('Error updating settings:', error);
-    } finally {
-      // Reset the flag after a short delay to ensure state update completes
-      setTimeout(() => {
-        isSavingRef.current = false;
-      }, 100);
     }
-  }, []); // No dependencies - stable callback
+  }, []);
 
-  const setCurrency = useCallback(async (currencyCode: string, currencySymbol: string) => {
+  const setCurrency = useCallback((currencyCode: string, currencySymbol: string) => {
     console.log('setCurrency called with:', currencyCode, currencySymbol);
-    await updateSettings({ currency: currencyCode, currencySymbol });
+    updateSettings({ currency: currencyCode, currencySymbol });
   }, [updateSettings]);
 
   const setSupabaseEnabled = useCallback(async (enabled: boolean) => {
