@@ -54,5 +54,6 @@ export function getCurrencyByCode(code: string): Currency | undefined {
 }
 
 export function getDefaultCurrency(): Currency {
-  return CURRENCIES.find(c => c.code === 'EUR') || CURRENCIES[0];
+  // Return USD as default instead of EUR
+  return CURRENCIES.find(c => c.code === 'USD') || CURRENCIES[0];
 }
