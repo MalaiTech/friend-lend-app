@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,19 @@ export default function CurrencySelectorScreen() {
   const { settings, setCurrency } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
   const isSelectingRef = useRef(false);
+  const hasNavigatedRef = useRef(false);
+
+  // Reset refs when component mounts
+  useEffect(() => {
+    isSelectingRef.current = false;
+    hasNavigatedRef.current = false;
+    
+    return () => {
+      // Cleanup on unmount
+      isSelectingRef.current = false;
+      hasNavigatedRef.current = false;
+    };
+  }, []);
 
   const filteredCurrencies = CURRENCIES.filter(
     (currency) =>
@@ -26,10 +39,10 @@ export default function CurrencySelectorScreen() {
       currency.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelectCurrency = async (currency: Currency) => {
+  const handleSelectCurrency = (currency: Currency) => {
     // Prevent multiple selections
-    if (isSelectingRef.current) {
-      console.log('Already selecting, ignoring...');
+    if (isSelectingRef.current || hasNavigatedRef.current) {
+      console.log('Already selecting or navigated, ignoring...');
       return;
     }
     
@@ -43,28 +56,23 @@ export default function CurrencySelectorScreen() {
     }
     
     isSelectingRef.current = true;
+    hasNavigatedRef.current = true;
     console.log('Selecting currency:', currency.code);
     
-    try {
-      // Update settings FIRST (synchronously)
-      await setCurrency(currency.code, currency.symbol);
-      console.log('Currency updated successfully');
-      
-      // Small delay to ensure state is saved
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Then navigate back
-      if (router.canGoBack()) {
-        router.back();
-      }
-    } catch (error) {
-      console.error('Error updating currency:', error);
-      isSelectingRef.current = false;
+    // Navigate back immediately
+    if (router.canGoBack()) {
+      router.back();
     }
+    
+    // Update settings after navigation (non-blocking)
+    setCurrency(currency.code, currency.symbol).catch((error) => {
+      console.error('Error updating currency:', error);
+    });
   };
 
   const handleCancel = () => {
-    if (!isSelectingRef.current && router.canGoBack()) {
+    if (!isSelectingRef.current && !hasNavigatedRef.current && router.canGoBack()) {
+      hasNavigatedRef.current = true;
       router.back();
     }
   };
@@ -76,7 +84,7 @@ export default function CurrencySelectorScreen() {
       <Pressable
         style={[styles.currencyItem, isSelected && styles.currencyItemSelected]}
         onPress={() => handleSelectCurrency(item)}
-        disabled={isSelectingRef.current}
+        disabled={isSelectingRef.current || hasNavigatedRef.current}
       >
         <View style={styles.currencyInfo}>
           <Text style={styles.currencySymbol}>{item.symbol}</Text>
@@ -116,12 +124,12 @@ export default function CurrencySelectorScreen() {
             placeholder="Search currencies..."
             placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
-            editable={!isSelectingRef.current}
+            editable={!isSelectingRef.current && !hasNavigatedRef.current}
           />
           {searchQuery.length > 0 && (
             <Pressable 
               onPress={() => setSearchQuery('')}
-              disabled={isSelectingRef.current}
+              disabled={isSelectingRef.current || hasNavigatedRef.current}
             >
               <IconSymbol name="xmark.circle.fill" size={20} color={colors.textSecondary} />
             </Pressable>
@@ -135,7 +143,7 @@ export default function CurrencySelectorScreen() {
           keyExtractor={(item) => item.code}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          scrollEnabled={!isSelectingRef.current}
+          scrollEnabled={!isSelectingRef.current && !hasNavigatedRef.current}
         />
       </View>
     </>
