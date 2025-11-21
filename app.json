@@ -5,12 +5,12 @@
     "slug": "FriendLend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/natively-dark.png",
+    "icon": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/natively-dark.png",
+      "image": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -35,7 +35,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/natively-dark.png",
+        "foregroundImage": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
@@ -51,7 +51,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/final_quest_240x240.png",
+      "favicon": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
       "bundler": "metro"
     },
     "plugins": [
