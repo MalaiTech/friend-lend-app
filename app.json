@@ -1,7 +1,8 @@
+
 {
   "expo": {
-    "name": "Natively",
-    "slug": "Natively",
+    "name": "FriendLend",
+    "slug": "friendlend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -14,9 +15,19 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Natively",
+      "bundleIdentifier": "com.friendlend.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSContactsUsageDescription": "FriendLend needs access to your contacts to help you quickly select borrowers when creating loans.",
+        "NSFaceIDUsageDescription": "FriendLend uses Face ID to secure your loan data and protect your privacy.",
+        "NSPhotoLibraryUsageDescription": "FriendLend needs access to your photo library to let you add photos of borrowers.",
+        "NSCameraUsageDescription": "FriendLend needs access to your camera to let you take photos of borrowers.",
+        "NSCalendarsUsageDescription": "FriendLend can add loan due dates to your calendar to help you track repayments.",
+        "NSRemindersUsageDescription": "FriendLend can create reminders for loan due dates.",
+        "NSUserTrackingUsageDescription": "This app does not track you."
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -25,7 +36,14 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Natively"
+      "package": "com.friendlend.app",
+      "permissions": [
+        "android.permission.READ_CONTACTS",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/images/final_quest_240x240.png",
@@ -34,14 +52,36 @@
     "plugins": [
       "expo-font",
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow FriendLend to access your contacts to help you quickly select borrowers."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow FriendLend to use Face ID to secure your loan data."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/natively-dark.png",
+          "color": "#000000"
+        }
+      ]
     ],
-    "scheme": "natively",
+    "scheme": "friendlend",
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
     }
   }
 }

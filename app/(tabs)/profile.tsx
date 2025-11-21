@@ -7,7 +7,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { File, Paths } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { clearAllData } from '@/utils/storage';
 import { useSettings } from '@/hooks/useSettings';
 import { useLoans } from '@/hooks/useLoans';
@@ -35,9 +35,14 @@ export default function SettingsScreen() {
   );
 
   const checkBiometricAvailability = async () => {
-    const compatible = await LocalAuthentication.hasHardwareAsync();
-    const enrolled = await LocalAuthentication.isEnrolledAsync();
-    setBiometricAvailable(compatible && enrolled);
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      setBiometricAvailable(compatible && enrolled);
+    } catch (error) {
+      console.error('Error checking biometric availability:', error);
+      setBiometricAvailable(false);
+    }
   };
 
   const handleEnableBiometric = async () => {
@@ -462,27 +467,29 @@ export default function SettingsScreen() {
       
       const csv = generateCSV();
       
-      // Save CSV to file using the new Expo SDK 54 API
+      // Save CSV to file using the legacy Expo SDK 54 API
       const fileName = `friendlend-loans-${Date.now()}.csv`;
-      const file = new File(Paths.cache, fileName);
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
       
-      console.log('Writing CSV to:', file.uri);
+      console.log('Writing CSV to:', fileUri);
       
       // Write the CSV content to the file
-      file.write(csv);
+      await FileSystem.writeAsStringAsync(fileUri, csv, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
       
-      console.log('CSV generated at:', file.uri);
+      console.log('CSV generated at:', fileUri);
       
       // Share the CSV
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(file.uri, {
+        await Sharing.shareAsync(fileUri, {
           mimeType: 'text/csv',
           dialogTitle: 'Export Loans as CSV',
           UTI: 'public.comma-separated-values-text',
         });
         console.log('CSV shared successfully');
       } else {
-        Alert.alert('Success', `CSV saved to: ${file.uri}`);
+        Alert.alert('Success', `CSV saved to: ${fileUri}`);
       }
     } catch (error) {
       console.error('Error exporting CSV:', error);
