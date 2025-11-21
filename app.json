@@ -69,14 +69,6 @@
         {
           "faceIDPermission": "Allow FriendLend to use Face ID to secure your loan data."
         }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/natively-dark.png",
-          "color": "#000000",
-          "mode": "default"
-        }
       ]
     ],
     "scheme": "friendlend",
@@ -88,10 +80,6 @@
       "eas": {
         "projectId": "your-project-id-here"
       }
-    },
-    "notification": {
-      "icon": "./assets/images/natively-dark.png",
-      "color": "#000000"
     }
   },
   "scheme": "FriendLend"
