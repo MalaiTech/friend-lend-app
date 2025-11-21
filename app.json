@@ -2,7 +2,7 @@
 {
   "expo": {
     "name": "FriendLend",
-    "slug": "friendlend",
+    "slug": "FriendLend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -74,7 +74,8 @@
         "expo-notifications",
         {
           "icon": "./assets/images/natively-dark.png",
-          "color": "#000000"
+          "color": "#000000",
+          "mode": "default"
         }
       ]
     ],
@@ -87,6 +88,11 @@
       "eas": {
         "projectId": "your-project-id-here"
       }
+    },
+    "notification": {
+      "icon": "./assets/images/natively-dark.png",
+      "color": "#000000"
     }
-  }
+  },
+  "scheme": "FriendLend"
 }
