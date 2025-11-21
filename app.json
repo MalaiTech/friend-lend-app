@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.friendlend.app",
+      "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSContactsUsageDescription": "FriendLend needs access to your contacts to help you quickly select borrowers when creating loans.",
@@ -37,6 +38,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.friendlend.app",
+      "versionCode": 1,
       "permissions": [
         "android.permission.READ_CONTACTS",
         "android.permission.USE_BIOMETRIC",
