@@ -81,6 +81,10 @@ export default function SettingsScreen() {
     }, 1000);
   };
 
+  const handlePrivacyPolicy = () => {
+    router.push('/privacy-policy');
+  };
+
   const generateCSV = () => {
     // Escape quotes and commas in text fields
     const escapeCsvField = (field: string) => {
@@ -603,6 +607,25 @@ export default function SettingsScreen() {
                   <View>
                     <Text style={[styles.settingTitle, { color: colors.error }]}>Clear All Data</Text>
                     <Text style={styles.settingSubtitle}>Delete all loans and payments</Text>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Legal Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Legal</Text>
+            <View style={commonStyles.card}>
+              <Pressable style={styles.settingItem} onPress={handlePrivacyPolicy}>
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                    <IconSymbol name="hand.raised" size={24} color={colors.primary} />
+                  </View>
+                  <View>
+                    <Text style={styles.settingTitle}>Privacy Policy</Text>
+                    <Text style={styles.settingSubtitle}>How we handle your data</Text>
                   </View>
                 </View>
                 <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
