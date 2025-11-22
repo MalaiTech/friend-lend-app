@@ -76,10 +76,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
+      "router": {}
     }
   },
   "scheme": "Friend2Lend"
