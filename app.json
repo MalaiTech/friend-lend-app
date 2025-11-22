@@ -1,8 +1,8 @@
 
 {
   "expo": {
-    "name": "FriendLend",
-    "slug": "FriendLend",
+    "name": "Friend2Lend",
+    "slug": "Friend2Lend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
@@ -16,17 +16,17 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.friendlend.app",
+      "bundleIdentifier": "com.friend2lend.app",
       "buildNumber": "1",
       "jsEngine": "hermes",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSContactsUsageDescription": "FriendLend needs access to your contacts to help you quickly select borrowers when creating loans.",
-        "NSFaceIDUsageDescription": "FriendLend uses Face ID to secure your loan data and protect your privacy.",
-        "NSPhotoLibraryUsageDescription": "FriendLend needs access to your photo library to let you add photos of borrowers.",
-        "NSCameraUsageDescription": "FriendLend needs access to your camera to let you take photos of borrowers.",
-        "NSCalendarsUsageDescription": "FriendLend can add loan due dates to your calendar to help you track repayments.",
-        "NSRemindersUsageDescription": "FriendLend can create reminders for loan due dates.",
+        "NSContactsUsageDescription": "Friend2Lend needs access to your contacts to help you quickly select borrowers when creating loans.",
+        "NSFaceIDUsageDescription": "Friend2Lend uses Face ID to secure your loan data and protect your privacy.",
+        "NSPhotoLibraryUsageDescription": "Friend2Lend needs access to your photo library to let you add photos of borrowers.",
+        "NSCameraUsageDescription": "Friend2Lend needs access to your camera to let you take photos of borrowers.",
+        "NSCalendarsUsageDescription": "Friend2Lend can add loan due dates to your calendar to help you track repayments.",
+        "NSRemindersUsageDescription": "Friend2Lend can create reminders for loan due dates.",
         "NSUserTrackingUsageDescription": "This app does not track you."
       },
       "config": {
@@ -39,7 +39,7 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.friendlend.app",
+      "package": "com.friend2lend.app",
       "versionCode": 1,
       "jsEngine": "hermes",
       "permissions": [
@@ -61,17 +61,17 @@
       [
         "expo-contacts",
         {
-          "contactsPermission": "Allow FriendLend to access your contacts to help you quickly select borrowers."
+          "contactsPermission": "Allow Friend2Lend to access your contacts to help you quickly select borrowers."
         }
       ],
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow FriendLend to use Face ID to secure your loan data."
+          "faceIDPermission": "Allow Friend2Lend to use Face ID to secure your loan data."
         }
       ]
     ],
-    "scheme": "friendlend",
+    "scheme": "friend2lend",
     "experiments": {
       "typedRoutes": true
     },
@@ -82,5 +82,5 @@
       }
     }
   },
-  "scheme": "FriendLend"
+  "scheme": "Friend2Lend"
 }

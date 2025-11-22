@@ -1,12 +1,14 @@
 
 import React from 'react';
-import { Platform, View, Text, Image, StyleSheet } from 'react-native';
+import { Platform, View, Text, Image, StyleSheet, useColorScheme } from 'react-native';
 import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
-import { colors } from '@/styles/commonStyles';
+import { colors, useThemeColors } from '@/styles/commonStyles';
 
 export default function TabLayout() {
+  const themeColors = useThemeColors();
+  
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
@@ -47,7 +49,7 @@ export default function TabLayout() {
           resizeMode="contain"
         />
       </View>
-      <Text style={styles.headerTitle}>FriendLend</Text>
+      <Text style={[styles.headerTitle, { color: themeColors.text }]}>Friend2Lend</Text>
     </View>
   );
 
@@ -110,7 +112,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.text,
     letterSpacing: 0.5,
   },
 });

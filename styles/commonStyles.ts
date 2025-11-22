@@ -1,6 +1,26 @@
 
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet, ViewStyle, TextStyle, useColorScheme } from 'react-native';
 
+// Hook to get theme-aware colors
+export const useThemeColors = () => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  return {
+    background: isDark ? '#121212' : '#F5F5F5',
+    text: isDark ? '#FFFFFF' : '#1E1E1E',
+    textSecondary: isDark ? '#B0B0B0' : '#757575',
+    primary: '#4285F4',
+    secondary: '#34A853',
+    accent: '#FFC107',
+    card: isDark ? '#1E1E1E' : '#FFFFFF',
+    highlight: isDark ? '#1E3A5F' : '#BBDEFB',
+    error: '#F44336',
+    border: isDark ? '#333333' : '#E0E0E0',
+  };
+};
+
+// Default light theme colors (for backwards compatibility)
 export const colors = {
   background: '#F5F5F5',
   text: '#1E1E1E',
