@@ -164,6 +164,45 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.paragraph}>
               Since all data stays on your device: You can exercise these rights simply by deleting or modifying the data within the App, or by deleting the App itself. MalaiTech holds no personal data, so GDPR does not require us to process or store any user requests.
             </Text>
+
+            <Text style={styles.sectionTitle}>8. CCPA Compliance</Text>
+            <Text style={styles.paragraph}>
+              Under the California Consumer Privacy Act (CCPA):
+            </Text>
+            <Text style={styles.bulletPoint}>- We do not sell personal information</Text>
+            <Text style={styles.bulletPoint}>- We do not collect personal information</Text>
+            <Text style={styles.bulletPoint}>- No opt-out is required because no data is collected</Text>
+            <Text style={styles.bulletPoint}>- CCPA rights can be exercised by managing your data on your device.</Text>
+
+            <Text style={styles.sectionTitle}>9. Children&apos;s Privacy</Text>
+            <Text style={styles.paragraph}>
+              Friend2Lend is not intended for children under 13. We do not knowingly collect data from children.
+            </Text>
+            <Text style={styles.paragraph}>
+              If a parent believes their child has entered personal data into the App, deleting the App removes all stored data.
+            </Text>
+
+            <Text style={styles.sectionTitle}>10. Data Security</Text>
+            <Text style={styles.paragraph}>
+              Your data is protected by:
+            </Text>
+            <Text style={styles.bulletPoint}>- Your device&apos;s operating system security</Text>
+            <Text style={styles.bulletPoint}>- Optional Face ID / Touch ID</Text>
+            <Text style={styles.bulletPoint}>- No external data transmission</Text>
+            <Text style={styles.bulletPoint}>- MalaiTech has no access to your information.</Text>
+
+            <Text style={styles.sectionTitle}>11. Changes to This Policy</Text>
+            <Text style={styles.paragraph}>
+              We may update this Privacy Policy to reflect App improvements or legal requirements.
+            </Text>
+            <Text style={styles.paragraph}>
+              Updates will be posted on our website. Continued use of the App after changes constitutes acceptance of the updated policy.
+            </Text>
+
+            <Text style={styles.sectionTitle}>12. Contact Information</Text>
+            <Text style={styles.paragraph}>
+              For questions regarding these Terms, please contact us at www.malai.nl
+            </Text>
           </View>
         </ScrollView>
       </View>
