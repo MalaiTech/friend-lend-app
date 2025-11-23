@@ -27,140 +27,142 @@ export default function PrivacyPolicyScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
-            <Text style={styles.lastUpdated}>Last Updated: January 2025</Text>
-
-            <Text style={styles.sectionTitle}>Introduction</Text>
+            <Text style={styles.sectionTitle}>1. Introduction</Text>
             <Text style={styles.paragraph}>
-              FriendLend (&quot;we&quot;, &quot;our&quot;, or &quot;the app&quot;) is committed to protecting your privacy. 
-              This Privacy Policy explains how we handle your information when you use our mobile application.
-            </Text>
-
-            <Text style={styles.sectionTitle}>Data Collection and Storage</Text>
-            <Text style={styles.paragraph}>
-              FriendLend is designed with privacy as a core principle. All your data is stored locally on your device only. 
-              We do not collect, transmit, or store any of your personal information on external servers.
-            </Text>
-
-            <Text style={styles.subsectionTitle}>Information Stored Locally:</Text>
-            <Text style={styles.bulletPoint}>• Loan records (borrower names, amounts, dates, interest rates)</Text>
-            <Text style={styles.bulletPoint}>• Payment history</Text>
-            <Text style={styles.bulletPoint}>• App settings and preferences</Text>
-            <Text style={styles.bulletPoint}>• Notes and attachments you add to loans</Text>
-
-            <Text style={styles.sectionTitle}>Permissions We Request</Text>
-            <Text style={styles.paragraph}>
-              FriendLend requests the following permissions to provide its functionality:
-            </Text>
-
-            <Text style={styles.subsectionTitle}>Contacts Access:</Text>
-            <Text style={styles.paragraph}>
-              We request access to your contacts to help you quickly select borrowers when creating loans. 
-              Contact information is only used within the app and is never transmitted externally.
-            </Text>
-
-            <Text style={styles.subsectionTitle}>Face ID / Touch ID:</Text>
-            <Text style={styles.paragraph}>
-              We use biometric authentication to secure your loan data and protect your privacy. 
-              Biometric data is processed by your device&apos;s operating system and is never accessed or stored by FriendLend.
-            </Text>
-
-            <Text style={styles.subsectionTitle}>Photo Library and Camera:</Text>
-            <Text style={styles.paragraph}>
-              We request access to your photo library and camera to allow you to add photos related to loans. 
-              Photos are stored locally on your device only.
-            </Text>
-
-            <Text style={styles.subsectionTitle}>Calendar and Reminders:</Text>
-            <Text style={styles.paragraph}>
-              We request access to add loan due dates to your calendar and create reminders. 
-              This helps you track repayments. You control what gets added to your calendar.
-            </Text>
-
-            <Text style={styles.subsectionTitle}>Notifications:</Text>
-            <Text style={styles.paragraph}>
-              We use local notifications to remind you about upcoming or overdue loan payments. 
-              These notifications are generated locally on your device.
-            </Text>
-
-            <Text style={styles.sectionTitle}>Data Sharing</Text>
-            <Text style={styles.paragraph}>
-              FriendLend does not share your data with any third parties. When you use the &quot;Share&quot; feature 
-              to send loan summaries via messaging apps, you explicitly choose what information to share and with whom. 
-              This sharing is handled by your device&apos;s native sharing functionality.
-            </Text>
-
-            <Text style={styles.sectionTitle}>Data Security</Text>
-            <Text style={styles.paragraph}>
-              Your data security is important to us. FriendLend implements the following security measures:
-            </Text>
-            <Text style={styles.bulletPoint}>• All data is stored locally on your device using secure storage mechanisms</Text>
-            <Text style={styles.bulletPoint}>• Optional biometric authentication (Face ID/Touch ID) to protect app access</Text>
-            <Text style={styles.bulletPoint}>• No data transmission to external servers</Text>
-            <Text style={styles.bulletPoint}>• No third-party analytics or tracking</Text>
-
-            <Text style={styles.sectionTitle}>Data Backup and Export</Text>
-            <Text style={styles.paragraph}>
-              You can export your data at any time using the Export feature in Settings. 
-              Exported data can be saved as PDF or CSV files. You are responsible for securing any exported data.
+              MalaiTech (&quot;we,&quot; &quot;our,&quot; &quot;us&quot;) is committed to protecting your privacy.
             </Text>
             <Text style={styles.paragraph}>
-              If you use iCloud backup on your device, your FriendLend data may be included in your iCloud backup. 
-              This is controlled by your device&apos;s backup settings, not by FriendLend.
+              This Privacy Policy explains how Friend2Lend handles your information when you use the App.
             </Text>
-
-            <Text style={styles.sectionTitle}>Data Deletion</Text>
             <Text style={styles.paragraph}>
-              You have complete control over your data. You can:
+              Friend2Lend is designed with privacy first:
             </Text>
-            <Text style={styles.bulletPoint}>• Delete individual loans and payments within the app</Text>
-            <Text style={styles.bulletPoint}>• Clear all data using the &quot;Clear All Data&quot; option in Settings</Text>
-            <Text style={styles.bulletPoint}>• Uninstall the app to remove all data from your device</Text>
+            <Text style={styles.bulletPoint}>- We do not collect, store, or transfer your personal data.</Text>
+            <Text style={styles.bulletPoint}>- All data remains on your device only.</Text>
 
-            <Text style={styles.sectionTitle}>Children&apos;s Privacy</Text>
+            <Text style={styles.sectionTitle}>2. Information We Do NOT Collect</Text>
             <Text style={styles.paragraph}>
-              FriendLend is not intended for use by children under the age of 13. 
-              We do not knowingly collect information from children under 13.
+              MalaiTech does not:
             </Text>
-
-            <Text style={styles.sectionTitle}>No Tracking or Analytics</Text>
+            <Text style={styles.bulletPoint}>- Collect personal information</Text>
+            <Text style={styles.bulletPoint}>- Store user data on servers</Text>
+            <Text style={styles.bulletPoint}>- Transmit data outside your device</Text>
+            <Text style={styles.bulletPoint}>- Use tracking technologies (cookies, analytics, advertising IDs)</Text>
+            <Text style={styles.bulletPoint}>- Use third-party analytics</Text>
+            <Text style={styles.bulletPoint}>- Sell or share data with any third party</Text>
             <Text style={styles.paragraph}>
-              FriendLend does not use any analytics, tracking, or advertising services. 
-              We do not collect usage statistics, crash reports, or any other telemetry data. 
-              Your use of the app is completely private.
+              This means your data never leaves your phone.
             </Text>
 
-            <Text style={styles.sectionTitle}>Changes to This Privacy Policy</Text>
+            <Text style={styles.sectionTitle}>3. Information Stored on Your Device (Local Only)</Text>
             <Text style={styles.paragraph}>
-              We may update this Privacy Policy from time to time. 
-              Any changes will be reflected in the app with an updated &quot;Last Updated&quot; date. 
-              We encourage you to review this Privacy Policy periodically.
+              The following information may be stored locally on your device only, and only with your permission:
             </Text>
 
-            <Text style={styles.sectionTitle}>Your Rights</Text>
+            <Text style={styles.subsectionTitle}>Contact Information:</Text>
             <Text style={styles.paragraph}>
-              Since all data is stored locally on your device, you have complete control over your information:
+              The App may request access to your device&apos;s Contacts to allow selecting names for record-keeping.
             </Text>
-            <Text style={styles.bulletPoint}>• Right to access: All your data is accessible within the app</Text>
-            <Text style={styles.bulletPoint}>• Right to modify: You can edit any loan or payment information</Text>
-            <Text style={styles.bulletPoint}>• Right to delete: You can delete any or all data at any time</Text>
-            <Text style={styles.bulletPoint}>• Right to export: You can export your data in PDF or CSV format</Text>
-
-            <Text style={styles.sectionTitle}>Contact Us</Text>
             <Text style={styles.paragraph}>
-              If you have any questions about this Privacy Policy or how FriendLend handles your information, 
-              please contact us at:
+              We do not upload, store, or transmit contact information.
             </Text>
-            <Text style={styles.contactInfo}>Email: support@friendlend.app</Text>
 
-            <Text style={styles.sectionTitle}>Compliance</Text>
+            <Text style={styles.subsectionTitle}>Photos and Camera</Text>
             <Text style={styles.paragraph}>
-              FriendLend is designed to comply with privacy regulations including GDPR, CCPA, and Apple&apos;s App Store 
-              privacy requirements. Since we do not collect or transmit any personal data, most data protection 
-              regulations do not apply to our data handling practices.
+              Used only when you attach optional images to your loan entries.
+            </Text>
+            <Text style={styles.paragraph}>
+              Images are stored on your device only.
             </Text>
 
-            <Text style={styles.footer}>
-              By using FriendLend, you acknowledge that you have read and understood this Privacy Policy.
+            <Text style={styles.subsectionTitle}>Calendar & Reminders</Text>
+            <Text style={styles.paragraph}>
+              If you enable due date reminders or calendar exports, entries are added to your device&apos;s local Calendar or Reminders app.
+            </Text>
+
+            <Text style={styles.subsectionTitle}>Biometric Authentication</Text>
+            <Text style={styles.paragraph}>
+              Face ID or Touch ID is used only to secure access to the App.
+            </Text>
+            <Text style={styles.paragraph}>
+              Biometric data is never accessed or stored by Friend2Lend.
+            </Text>
+
+            <Text style={styles.subsectionTitle}>Loan Records</Text>
+            <Text style={styles.paragraph}>
+              Amounts, names, due dates, notes, and photos are saved locally on your device.
+            </Text>
+
+            <Text style={styles.sectionTitle}>4. No Account, No Cloud Storage</Text>
+            <Text style={styles.paragraph}>
+              Friend2Lend does not require you to create an account.
+            </Text>
+            <Text style={styles.bulletPoint}>- There is no login</Text>
+            <Text style={styles.bulletPoint}>- There is no cloud sync</Text>
+            <Text style={styles.bulletPoint}>- All information remains on the device unless you manually export it</Text>
+            <Text style={styles.paragraph}>
+              You have full control over your data at all times.
+            </Text>
+
+            <Text style={styles.sectionTitle}>5. Data Sharing</Text>
+            <Text style={styles.paragraph}>
+              Since the App does not collect or transmit data, we do not share information with:
+            </Text>
+            <Text style={styles.bulletPoint}>- Advertisers</Text>
+            <Text style={styles.bulletPoint}>- Analytics providers</Text>
+            <Text style={styles.bulletPoint}>- Third parties</Text>
+            <Text style={styles.bulletPoint}>- Government agencies</Text>
+            <Text style={styles.paragraph}>
+              Your data is yours alone.
+            </Text>
+
+            <Text style={styles.sectionTitle}>6. Permissions Explained</Text>
+            <Text style={styles.paragraph}>
+              Friend2Lend may request the following optional device permissions:
+            </Text>
+
+            <Text style={styles.subsectionTitle}>Contacts</Text>
+            <Text style={styles.paragraph}>
+              Used to select borrowers.
+            </Text>
+            <Text style={styles.paragraph}>
+              Not uploaded or stored by MalaiTech.
+            </Text>
+
+            <Text style={styles.subsectionTitle}>Camera / Photos</Text>
+            <Text style={styles.paragraph}>
+              Used to attach optional images.
+            </Text>
+            <Text style={styles.paragraph}>
+              Images remain on your device.
+            </Text>
+
+            <Text style={styles.subsectionTitle}>Calendar / Reminders</Text>
+            <Text style={styles.paragraph}>
+              To allow adding due dates to your personal calendar.
+            </Text>
+            <Text style={styles.paragraph}>
+              No data is shared externally.
+            </Text>
+
+            <Text style={styles.subsectionTitle}>Biometrics (Face ID / Touch ID)</Text>
+            <Text style={styles.paragraph}>
+              Used for App security only.
+            </Text>
+            <Text style={styles.paragraph}>
+              Biometric data never leaves the device.
+            </Text>
+
+            <Text style={styles.sectionTitle}>7. GDPR Compliance</Text>
+            <Text style={styles.paragraph}>
+              If you are in the European Union, GDPR grants you the right to:
+            </Text>
+            <Text style={styles.bulletPoint}>- Access your data</Text>
+            <Text style={styles.bulletPoint}>- Correct your data</Text>
+            <Text style={styles.bulletPoint}>- Delete your data</Text>
+            <Text style={styles.bulletPoint}>- Restrict processing</Text>
+            <Text style={styles.paragraph}>
+              Since all data stays on your device: You can exercise these rights simply by deleting or modifying the data within the App, or by deleting the App itself. MalaiTech holds no personal data, so GDPR does not require us to process or store any user requests.
             </Text>
           </View>
         </ScrollView>
@@ -203,12 +205,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  lastUpdated: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
-    marginBottom: 24,
-  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -235,21 +231,5 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 8,
     paddingLeft: 8,
-  },
-  contactInfo: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.primary,
-    marginBottom: 12,
-    fontWeight: '600',
-  },
-  footer: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
-    marginTop: 32,
-    marginBottom: 20,
-    textAlign: 'center',
   },
 });
