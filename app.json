@@ -1,18 +1,17 @@
-
 {
   "expo": {
-    "name": "Friend2Lend",
-    "slug": "Friend2Lend",
+    "name": "FriendLend",
+    "slug": "FriendLend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/3bc109bd-2c59-4d16-af2c-5b0c83e263e6.png",
+    "icon": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/3bc109bd-2c59-4d16-af2c-5b0c83e263e6.png",
+      "image": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
       "resizeMode": "contain",
-      "backgroundColor": "#4A90E2"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true,
@@ -35,8 +34,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/3bc109bd-2c59-4d16-af2c-5b0c83e263e6.png",
-        "backgroundColor": "#4A90E2"
+        "foregroundImage": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
+        "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.friend2lend.app",
@@ -51,7 +50,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/3bc109bd-2c59-4d16-af2c-5b0c83e263e6.png",
+      "favicon": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -79,5 +78,5 @@
       "router": {}
     }
   },
-  "scheme": "Friend2Lend"
+  "scheme": "FriendLend"
 }
