@@ -5,14 +5,14 @@
     "slug": "Friend2Lend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/Icon Friend2Lend.png",
+    "icon": "./assets/images/3bc109bd-2c59-4d16-af2c-5b0c83e263e6.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/Icon Friend2Lend.png",
+      "image": "./assets/images/3bc109bd-2c59-4d16-af2c-5b0c83e263e6.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#4A90E2"
     },
     "ios": {
       "supportsTablet": true,
@@ -35,8 +35,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/Icon Friend2Lend.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "./assets/images/3bc109bd-2c59-4d16-af2c-5b0c83e263e6.png",
+        "backgroundColor": "#4A90E2"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.friend2lend.app",
@@ -51,7 +51,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/Icon Friend2Lend.png",
+      "favicon": "./assets/images/3bc109bd-2c59-4d16-af2c-5b0c83e263e6.png",
       "bundler": "metro"
     },
     "plugins": [
