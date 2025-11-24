@@ -37,20 +37,44 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.paragraph}>
               Friend2Lend is designed with privacy first:
             </Text>
-            <Text style={styles.bulletPoint}>- We do not collect, store, or transfer your personal data.</Text>
-            <Text style={styles.bulletPoint}>- All data remains on your device only.</Text>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>We do not collect, store, or transfer your personal data.</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>All data remains on your device only.</Text>
+            </View>
 
             <Text style={styles.sectionTitle}>2. Information We Do NOT Collect</Text>
             <Text style={styles.paragraph}>
               MalaiTech does not:
             </Text>
-            <Text style={styles.bulletPoint}>- Collect personal information</Text>
-            <Text style={styles.bulletPoint}>- Store user data on servers</Text>
-            <Text style={styles.bulletPoint}>- Transmit data outside your device</Text>
-            <Text style={styles.bulletPoint}>- Use tracking technologies (cookies, analytics, advertising IDs)</Text>
-            <Text style={styles.bulletPoint}>- Use third-party analytics</Text>
-            <Text style={styles.bulletPoint}>- Sell or share data with any third party</Text>
-            <Text style={styles.paragraph}>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Collect personal information</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Store user data on servers</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Transmit data outside your device</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Use tracking technologies (cookies, analytics, advertising IDs)</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Use third-party analytics</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Sell or share data with any third party</Text>
+            </View>
+            <Text style={styles.paragraphAfterBullets}>
               This means your data never leaves your phone.
             </Text>
 
@@ -60,36 +84,27 @@ export default function PrivacyPolicyScreen() {
             </Text>
 
             <Text style={styles.subsectionTitle}>Contact Information:</Text>
-            <Text style={styles.paragraph}>
-              The App may request access to your device&apos;s Contacts to allow selecting names for record-keeping.
-            </Text>
-            <Text style={styles.paragraph}>
-              We do not upload, store, or transmit contact information.
+            <Text style={styles.subsectionParagraph}>
+              The App may request access to your device&apos;s Contacts to allow selecting names for record-keeping. We do not upload, store, or transmit contact information.
             </Text>
 
             <Text style={styles.subsectionTitle}>Photos and Camera</Text>
-            <Text style={styles.paragraph}>
-              Used only when you attach optional images to your loan entries.
-            </Text>
-            <Text style={styles.paragraph}>
-              Images are stored on your device only.
+            <Text style={styles.subsectionParagraph}>
+              Used only when you attach optional images to your loan entries. Images are stored on your device only.
             </Text>
 
             <Text style={styles.subsectionTitle}>Calendar & Reminders</Text>
-            <Text style={styles.paragraph}>
+            <Text style={styles.subsectionParagraph}>
               If you enable due date reminders or calendar exports, entries are added to your device&apos;s local Calendar or Reminders app.
             </Text>
 
             <Text style={styles.subsectionTitle}>Biometric Authentication</Text>
-            <Text style={styles.paragraph}>
-              Face ID or Touch ID is used only to secure access to the App.
-            </Text>
-            <Text style={styles.paragraph}>
-              Biometric data is never accessed or stored by Friend2Lend.
+            <Text style={styles.subsectionParagraph}>
+              Face ID or Touch ID is used only to secure access to the App. Biometric data is never accessed or stored by Friend2Lend.
             </Text>
 
             <Text style={styles.subsectionTitle}>Loan Records</Text>
-            <Text style={styles.paragraph}>
+            <Text style={styles.subsectionParagraph}>
               Amounts, names, due dates, notes, and photos are saved locally on your device.
             </Text>
 
@@ -97,10 +112,19 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.paragraph}>
               Friend2Lend does not require you to create an account.
             </Text>
-            <Text style={styles.bulletPoint}>- There is no login</Text>
-            <Text style={styles.bulletPoint}>- There is no cloud sync</Text>
-            <Text style={styles.bulletPoint}>- All information remains on the device unless you manually export it</Text>
-            <Text style={styles.paragraph}>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>There is no login</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>There is no cloud sync</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>All information remains on the device unless you manually export it</Text>
+            </View>
+            <Text style={styles.paragraphAfterBullets}>
               You have full control over your data at all times.
             </Text>
 
@@ -108,11 +132,23 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.paragraph}>
               Since the App does not collect or transmit data, we do not share information with:
             </Text>
-            <Text style={styles.bulletPoint}>- Advertisers</Text>
-            <Text style={styles.bulletPoint}>- Analytics providers</Text>
-            <Text style={styles.bulletPoint}>- Third parties</Text>
-            <Text style={styles.bulletPoint}>- Government agencies</Text>
-            <Text style={styles.paragraph}>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Advertisers</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Analytics providers</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Third parties</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Government agencies</Text>
+            </View>
+            <Text style={styles.paragraphAfterBullets}>
               Your data is yours alone.
             </Text>
 
@@ -122,46 +158,46 @@ export default function PrivacyPolicyScreen() {
             </Text>
 
             <Text style={styles.subsectionTitle}>Contacts</Text>
-            <Text style={styles.paragraph}>
-              Used to select borrowers.
-            </Text>
-            <Text style={styles.paragraph}>
-              Not uploaded or stored by MalaiTech.
+            <Text style={styles.subsectionParagraph}>
+              Used to select borrowers. Not uploaded or stored by MalaiTech.
             </Text>
 
             <Text style={styles.subsectionTitle}>Camera / Photos</Text>
-            <Text style={styles.paragraph}>
-              Used to attach optional images.
-            </Text>
-            <Text style={styles.paragraph}>
-              Images remain on your device.
+            <Text style={styles.subsectionParagraph}>
+              Used to attach optional images. Images remain on your device.
             </Text>
 
             <Text style={styles.subsectionTitle}>Calendar / Reminders</Text>
-            <Text style={styles.paragraph}>
-              To allow adding due dates to your personal calendar.
-            </Text>
-            <Text style={styles.paragraph}>
-              No data is shared externally.
+            <Text style={styles.subsectionParagraph}>
+              To allow adding due dates to your personal calendar. No data is shared externally.
             </Text>
 
             <Text style={styles.subsectionTitle}>Biometrics (Face ID / Touch ID)</Text>
-            <Text style={styles.paragraph}>
-              Used for App security only.
-            </Text>
-            <Text style={styles.paragraph}>
-              Biometric data never leaves the device.
+            <Text style={styles.subsectionParagraph}>
+              Used for App security only. Biometric data never leaves the device.
             </Text>
 
             <Text style={styles.sectionTitle}>7. GDPR Compliance</Text>
             <Text style={styles.paragraph}>
               If you are in the European Union, GDPR grants you the right to:
             </Text>
-            <Text style={styles.bulletPoint}>- Access your data</Text>
-            <Text style={styles.bulletPoint}>- Correct your data</Text>
-            <Text style={styles.bulletPoint}>- Delete your data</Text>
-            <Text style={styles.bulletPoint}>- Restrict processing</Text>
-            <Text style={styles.paragraph}>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Access your data</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Correct your data</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Delete your data</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Restrict processing</Text>
+            </View>
+            <Text style={styles.paragraphAfterBullets}>
               Since all data stays on your device: You can exercise these rights simply by deleting or modifying the data within the App, or by deleting the App itself. MalaiTech holds no personal data, so GDPR does not require us to process or store any user requests.
             </Text>
 
@@ -169,10 +205,22 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.paragraph}>
               Under the California Consumer Privacy Act (CCPA):
             </Text>
-            <Text style={styles.bulletPoint}>- We do not sell personal information</Text>
-            <Text style={styles.bulletPoint}>- We do not collect personal information</Text>
-            <Text style={styles.bulletPoint}>- No opt-out is required because no data is collected</Text>
-            <Text style={styles.bulletPoint}>- CCPA rights can be exercised by managing your data on your device.</Text>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>We do not sell personal information</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>We do not collect personal information</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>No opt-out is required because no data is collected</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>CCPA rights can be exercised by managing your data on your device</Text>
+            </View>
 
             <Text style={styles.sectionTitle}>9. Children&apos;s Privacy</Text>
             <Text style={styles.paragraph}>
@@ -186,10 +234,21 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.paragraph}>
               Your data is protected by:
             </Text>
-            <Text style={styles.bulletPoint}>- Your device&apos;s operating system security</Text>
-            <Text style={styles.bulletPoint}>- Optional Face ID / Touch ID</Text>
-            <Text style={styles.bulletPoint}>- No external data transmission</Text>
-            <Text style={styles.bulletPoint}>- MalaiTech has no access to your information.</Text>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Your device&apos;s operating system security</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>Optional Face ID / Touch ID</Text>
+            </View>
+            <View style={styles.bulletContainer}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.bulletText}>No external data transmission</Text>
+            </View>
+            <Text style={styles.paragraphAfterBullets}>
+              MalaiTech has no access to your information.
+            </Text>
 
             <Text style={styles.sectionTitle}>11. Changes to This Policy</Text>
             <Text style={styles.paragraph}>
@@ -237,8 +296,8 @@ const styles = StyleSheet.create({
     width: 40,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingTop: 24,
     paddingBottom: 100,
   },
   content: {
@@ -248,27 +307,59 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
-    marginTop: 24,
-    marginBottom: 12,
+    marginTop: 28,
+    marginBottom: 14,
+    letterSpacing: 0.3,
   },
   subsectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginTop: 16,
+    marginTop: 18,
     marginBottom: 8,
+    letterSpacing: 0.2,
   },
   paragraph: {
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 24,
     color: colors.text,
     marginBottom: 12,
+    opacity: 0.9,
   },
-  bulletPoint: {
+  subsectionParagraph: {
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 24,
     color: colors.text,
-    marginBottom: 8,
-    paddingLeft: 8,
+    marginBottom: 14,
+    opacity: 0.9,
+  },
+  paragraphAfterBullets: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: colors.text,
+    marginTop: 8,
+    marginBottom: 12,
+    opacity: 0.9,
+  },
+  bulletContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+    paddingLeft: 4,
+  },
+  bullet: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: colors.text,
+    marginRight: 12,
+    fontWeight: '600',
+    opacity: 0.8,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 24,
+    color: colors.text,
+    opacity: 0.9,
   },
 });
