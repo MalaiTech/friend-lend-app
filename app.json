@@ -1,15 +1,16 @@
+
 {
   "expo": {
-    "name": "FriendLend",
-    "slug": "FriendLend",
+    "name": "Friend2Lend",
+    "slug": "Friend2Lend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
+    "icon": "./assets/images/Icon Friend2Lend.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
+      "image": "./assets/images/Icon Friend2Lend.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -34,7 +35,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
+        "foregroundImage": "./assets/images/Icon Friend2Lend.png",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
@@ -50,7 +51,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png",
+      "favicon": "./assets/images/Icon Friend2Lend.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -78,5 +79,5 @@
       "router": {}
     }
   },
-  "scheme": "FriendLend"
+  "scheme": "Friend2Lend"
 }
