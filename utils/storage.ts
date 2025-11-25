@@ -1,10 +1,13 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { Loan, Payment, AppSettings } from '@/types/loan';
 
 const LOANS_KEY = '@friendlend_loans';
 const PAYMENTS_KEY = '@friendlend_payments';
 const SETTINGS_KEY = '@friendlend_settings';
+const PASSWORD_KEY = 'app_password';
+const BIOMETRIC_ENABLED_KEY = 'biometric_enabled';
 
 export async function saveLoans(loans: Loan[]): Promise<void> {
   try {
@@ -88,4 +91,68 @@ export async function clearAllData(): Promise<void> {
 export async function getAllData(): Promise<{ loans: Loan[]; payments: Payment[] }> {
   const [loans, payments] = await Promise.all([loadLoans(), loadPayments()]);
   return { loans, payments };
+}
+
+// Security functions
+export async function savePassword(password: string): Promise<void> {
+  try {
+    await SecureStore.setItemAsync(PASSWORD_KEY, password);
+    console.log('Password saved successfully');
+  } catch (error) {
+    console.error('Error saving password:', error);
+    throw error;
+  }
+}
+
+export async function getPassword(): Promise<string | null> {
+  try {
+    const password = await SecureStore.getItemAsync(PASSWORD_KEY);
+    return password;
+  } catch (error) {
+    console.error('Error getting password:', error);
+    return null;
+  }
+}
+
+export async function deletePassword(): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync(PASSWORD_KEY);
+    console.log('Password deleted successfully');
+  } catch (error) {
+    console.error('Error deleting password:', error);
+    throw error;
+  }
+}
+
+export async function hasPassword(): Promise<boolean> {
+  try {
+    const password = await getPassword();
+    return password !== null && password !== '';
+  } catch (error) {
+    console.error('Error checking password:', error);
+    return false;
+  }
+}
+
+export async function setBiometricEnabled(enabled: boolean): Promise<void> {
+  try {
+    await AsyncStorage.setItem(BIOMETRIC_ENABLED_KEY, JSON.stringify(enabled));
+    console.log('Biometric enabled status saved:', enabled);
+  } catch (error) {
+    console.error('Error saving biometric enabled status:', error);
+    throw error;
+  }
+}
+
+export async function isBiometricEnabled(): Promise<boolean> {
+  try {
+    const data = await AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+    return false; // Default is OFF
+  } catch (error) {
+    console.error('Error getting biometric enabled status:', error);
+    return false;
+  }
 }

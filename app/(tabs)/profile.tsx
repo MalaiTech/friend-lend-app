@@ -8,7 +8,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
-import { clearAllData } from '@/utils/storage';
+import { clearAllData, hasPassword, isBiometricEnabled } from '@/utils/storage';
 import { useSettings } from '@/hooks/useSettings';
 import { useLoans } from '@/hooks/useLoans';
 import { getCurrencyByCode } from '@/utils/currencies';
@@ -19,12 +19,12 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { settings, reloadSettings } = useSettings();
   const { refreshData, loans, payments, getPaymentsForLoan } = useLoans();
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [securityEnabled, setSecurityEnabled] = useState(false);
   const isNavigatingRef = useRef(false);
   const themeColors = useThemeColors();
 
   useEffect(() => {
-    checkBiometricAvailability();
+    checkSecurityStatus();
   }, []);
 
   // Reload settings when screen comes into focus
@@ -32,35 +32,17 @@ export default function SettingsScreen() {
     React.useCallback(() => {
       console.log('Profile screen focused, reloading settings...');
       reloadSettings();
+      checkSecurityStatus();
     }, [reloadSettings])
   );
 
-  const checkBiometricAvailability = async () => {
+  const checkSecurityStatus = async () => {
     try {
-      const compatible = await LocalAuthentication.hasHardwareAsync();
-      const enrolled = await LocalAuthentication.isEnrolledAsync();
-      setBiometricAvailable(compatible && enrolled);
+      const passwordSet = await hasPassword();
+      const biometricEnabled = await isBiometricEnabled();
+      setSecurityEnabled(passwordSet || biometricEnabled);
     } catch (error) {
-      console.error('Error checking biometric availability:', error);
-      setBiometricAvailable(false);
-    }
-  };
-
-  const handleEnableBiometric = async () => {
-    try {
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authenticate to enable biometric lock',
-        fallbackLabel: 'Use passcode',
-      });
-      
-      if (result.success) {
-        Alert.alert('Success', 'Biometric authentication enabled');
-      } else {
-        Alert.alert('Failed', 'Authentication failed');
-      }
-    } catch (error) {
-      console.error('Biometric error:', error);
-      Alert.alert('Error', 'Failed to enable biometric authentication');
+      console.error('Error checking security status:', error);
     }
   };
 
@@ -77,6 +59,22 @@ export default function SettingsScreen() {
     router.push('/currency-selector');
     
     // Reset navigation flag after a delay
+    setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 1000);
+  };
+
+  const handleSecuritySettings = () => {
+    if (isNavigatingRef.current) {
+      console.log('Already navigating, ignoring security settings press');
+      return;
+    }
+
+    console.log('Navigating to security settings');
+    isNavigatingRef.current = true;
+    
+    router.push('/security-settings');
+    
     setTimeout(() => {
       isNavigatingRef.current = false;
     }, 1000);
@@ -560,19 +558,15 @@ export default function SettingsScreen() {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Security</Text>
             <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
-              <Pressable
-                style={styles.settingItem}
-                onPress={handleEnableBiometric}
-                disabled={!biometricAvailable}
-              >
+              <Pressable style={styles.settingItem} onPress={handleSecuritySettings}>
                 <View style={styles.settingLeft}>
                   <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-                    <IconSymbol name="faceid" size={24} color={colors.primary} />
+                    <IconSymbol name="lock.fill" size={24} color={colors.primary} />
                   </View>
                   <View>
-                    <Text style={[styles.settingTitle, { color: themeColors.text }]}>Biometric Lock</Text>
+                    <Text style={[styles.settingTitle, { color: themeColors.text }]}>Password & Biometric Lock</Text>
                     <Text style={[styles.settingSubtitle, { color: themeColors.textSecondary }]}>
-                      {biometricAvailable ? 'Secure app with Face ID/Touch ID' : 'Not available on this device'}
+                      {securityEnabled ? 'Security enabled' : 'Protect your app with a password'}
                     </Text>
                   </View>
                 </View>

@@ -9,10 +9,12 @@ import 'react-native-reanimated';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import * as SplashScreen from 'expo-splash-screen';
+import AuthScreen from './auth-screen';
+import { hasPassword } from '@/utils/storage';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,15 +23,54 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [needsAuth, setNeedsAuth] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      checkAuthStatus();
     }
   }, [loaded]);
 
-  if (!loaded) {
+  const checkAuthStatus = async () => {
+    try {
+      const passwordSet = await hasPassword();
+      setNeedsAuth(passwordSet);
+      
+      // If no password is set, user is automatically authenticated
+      if (!passwordSet) {
+        setIsAuthenticated(true);
+      }
+      
+      setCheckingAuth(false);
+      SplashScreen.hideAsync();
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      setCheckingAuth(false);
+      SplashScreen.hideAsync();
+    }
+  };
+
+  const handleAuthenticated = () => {
+    setIsAuthenticated(true);
+  };
+
+  if (!loaded || checkingAuth) {
     return null;
+  }
+
+  // Show auth screen if password is set and user is not authenticated
+  if (needsAuth && !isAuthenticated) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <SystemBars style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          <AuthScreen onAuthenticated={handleAuthenticated} />
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    );
   }
 
   return (
@@ -69,6 +110,14 @@ export default function RootLayout() {
             name="metric-graph"
             options={{
               headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name="security-settings"
+            options={{
+              presentation: 'modal',
+              headerShown: true,
+              title: 'Security',
             }}
           />
         </Stack>

@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "Friend2Lend",
@@ -69,6 +70,12 @@
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow Friend2Lend to use Face ID to secure your loan data."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow Friend2Lend to access your Face ID biometric data for secure password storage."
         }
       ]
     ],
