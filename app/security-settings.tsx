@@ -8,9 +8,8 @@ import {
   Alert,
   Pressable,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, commonStyles, useThemeColors } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -140,186 +139,186 @@ export default function SecuritySettingsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
-        <View style={[commonStyles.container, { backgroundColor: themeColors.background, justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={{ color: themeColors.text }}>Loading...</Text>
-        </View>
-      </SafeAreaView>
+      <>
+        <Stack.Screen
+          options={{
+            title: 'Security Settings',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
+          <View style={[commonStyles.container, { backgroundColor: themeColors.background, justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ color: themeColors.text }}>Loading...</Text>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
-      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
-        {/* Back Button */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Security Settings',
+          headerBackTitle: 'Back',
+        }}
+      />
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
+        <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            <IconSymbol
-              ios_icon_name="chevron.left"
-              android_material_icon_name="arrow_back"
-              size={24}
-              color={colors.primary}
-            />
-            <Text style={[styles.backText, { color: colors.primary }]}>Back</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Password Section */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Password Protection</Text>
-            <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
-              {!passwordExists ? (
-                <>
-                  <Text style={[styles.description, { color: themeColors.textSecondary }]}>
-                    Set a password to secure your app. You&apos;ll be asked to enter this password when opening Friend2Lend.
-                  </Text>
-                  <Pressable
-                    style={[styles.button, { backgroundColor: colors.primary }]}
-                    onPress={() => setShowPasswordSection(!showPasswordSection)}
-                  >
-                    <Text style={styles.buttonText}>
-                      {showPasswordSection ? 'Cancel' : 'Set Password'}
+            {/* Password Section */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Password Protection</Text>
+              <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+                {!passwordExists ? (
+                  <>
+                    <Text style={[styles.description, { color: themeColors.textSecondary }]}>
+                      Set a password to secure your app. You&apos;ll be asked to enter this password when opening Friend2Lend.
                     </Text>
-                  </Pressable>
-
-                  {showPasswordSection && (
-                    <View style={styles.passwordForm}>
-                      <Text style={[styles.label, { color: themeColors.text }]}>New Password</Text>
-                      <TextInput
-                        style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                        value={newPassword}
-                        onChangeText={setNewPassword}
-                        secureTextEntry
-                        placeholder="Enter new password"
-                        placeholderTextColor={themeColors.textSecondary}
-                      />
-
-                      <Text style={[styles.label, { color: themeColors.text }]}>Confirm Password</Text>
-                      <TextInput
-                        style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        secureTextEntry
-                        placeholder="Confirm new password"
-                        placeholderTextColor={themeColors.textSecondary}
-                      />
-
-                      <Pressable
-                        style={[styles.button, { backgroundColor: colors.secondary }]}
-                        onPress={handleSetPassword}
-                      >
-                        <Text style={styles.buttonText}>Save Password</Text>
-                      </Pressable>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <>
-                  <View style={styles.statusRow}>
-                    <View style={styles.statusLeft}>
-                      <IconSymbol 
-                        ios_icon_name="lock.fill" 
-                        android_material_icon_name="lock" 
-                        size={24} 
-                        color={colors.secondary} 
-                      />
-                      <Text style={[styles.statusText, { color: themeColors.text }]}>Password is set</Text>
-                    </View>
-                    <IconSymbol 
-                      ios_icon_name="checkmark.circle.fill" 
-                      android_material_icon_name="check_circle" 
-                      size={24} 
-                      color={colors.secondary} 
-                    />
-                  </View>
-
-                  <View style={styles.buttonRow}>
                     <Pressable
-                      style={[styles.smallButton, { backgroundColor: colors.primary }]}
+                      style={[styles.button, { backgroundColor: colors.primary }]}
                       onPress={() => setShowPasswordSection(!showPasswordSection)}
                     >
                       <Text style={styles.buttonText}>
-                        {showPasswordSection ? 'Cancel' : 'Change Password'}
+                        {showPasswordSection ? 'Cancel' : 'Set Password'}
                       </Text>
                     </Pressable>
 
-                    <Pressable
-                      style={[styles.smallButton, { backgroundColor: colors.error }]}
-                      onPress={handleRemovePassword}
-                    >
-                      <Text style={styles.buttonText}>Remove Password</Text>
-                    </Pressable>
-                  </View>
+                    {showPasswordSection && (
+                      <View style={styles.passwordForm}>
+                        <Text style={[styles.label, { color: themeColors.text }]}>New Password</Text>
+                        <TextInput
+                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          value={newPassword}
+                          onChangeText={setNewPassword}
+                          secureTextEntry
+                          placeholder="Enter new password"
+                          placeholderTextColor={themeColors.textSecondary}
+                        />
 
-                  {showPasswordSection && (
-                    <View style={styles.passwordForm}>
-                      <Text style={[styles.label, { color: themeColors.text }]}>Current Password</Text>
-                      <TextInput
-                        style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                        value={currentPassword}
-                        onChangeText={setCurrentPassword}
-                        secureTextEntry
-                        placeholder="Enter current password"
-                        placeholderTextColor={themeColors.textSecondary}
-                      />
+                        <Text style={[styles.label, { color: themeColors.text }]}>Confirm Password</Text>
+                        <TextInput
+                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          value={confirmPassword}
+                          onChangeText={setConfirmPassword}
+                          secureTextEntry
+                          placeholder="Confirm new password"
+                          placeholderTextColor={themeColors.textSecondary}
+                        />
 
-                      <Text style={[styles.label, { color: themeColors.text }]}>New Password</Text>
-                      <TextInput
-                        style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                        value={newPassword}
-                        onChangeText={setNewPassword}
-                        secureTextEntry
-                        placeholder="Enter new password"
-                        placeholderTextColor={themeColors.textSecondary}
+                        <Pressable
+                          style={[styles.button, { backgroundColor: colors.secondary }]}
+                          onPress={handleSetPassword}
+                        >
+                          <Text style={styles.buttonText}>Save Password</Text>
+                        </Pressable>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.statusRow}>
+                      <View style={styles.statusLeft}>
+                        <IconSymbol 
+                          ios_icon_name="lock.fill" 
+                          android_material_icon_name="lock" 
+                          size={24} 
+                          color={colors.secondary} 
+                        />
+                        <Text style={[styles.statusText, { color: themeColors.text }]}>Password is set</Text>
+                      </View>
+                      <IconSymbol 
+                        ios_icon_name="checkmark.circle.fill" 
+                        android_material_icon_name="check_circle" 
+                        size={24} 
+                        color={colors.secondary} 
                       />
+                    </View>
 
-                      <Text style={[styles.label, { color: themeColors.text }]}>Confirm New Password</Text>
-                      <TextInput
-                        style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        secureTextEntry
-                        placeholder="Confirm new password"
-                        placeholderTextColor={themeColors.textSecondary}
-                      />
+                    <View style={styles.buttonRow}>
+                      <Pressable
+                        style={[styles.smallButton, { backgroundColor: colors.primary }]}
+                        onPress={() => setShowPasswordSection(!showPasswordSection)}
+                      >
+                        <Text style={styles.buttonText}>
+                          {showPasswordSection ? 'Cancel' : 'Change Password'}
+                        </Text>
+                      </Pressable>
 
                       <Pressable
-                        style={[styles.button, { backgroundColor: colors.secondary }]}
-                        onPress={handleChangePassword}
+                        style={[styles.smallButton, { backgroundColor: colors.error }]}
+                        onPress={handleRemovePassword}
                       >
-                        <Text style={styles.buttonText}>Update Password</Text>
+                        <Text style={styles.buttonText}>Remove Password</Text>
                       </Pressable>
                     </View>
-                  )}
-                </>
-              )}
-            </View>
-          </View>
 
-          {/* Info Section */}
-          <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
-            <View style={styles.infoRow}>
-              <IconSymbol 
-                ios_icon_name="info.circle" 
-                android_material_icon_name="info" 
-                size={20} 
-                color={colors.primary} 
-              />
-              <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
-                Your password is stored securely on your device using the same encryption as other passwords on your phone.
-              </Text>
+                    {showPasswordSection && (
+                      <View style={styles.passwordForm}>
+                        <Text style={[styles.label, { color: themeColors.text }]}>Current Password</Text>
+                        <TextInput
+                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          value={currentPassword}
+                          onChangeText={setCurrentPassword}
+                          secureTextEntry
+                          placeholder="Enter current password"
+                          placeholderTextColor={themeColors.textSecondary}
+                        />
+
+                        <Text style={[styles.label, { color: themeColors.text }]}>New Password</Text>
+                        <TextInput
+                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          value={newPassword}
+                          onChangeText={setNewPassword}
+                          secureTextEntry
+                          placeholder="Enter new password"
+                          placeholderTextColor={themeColors.textSecondary}
+                        />
+
+                        <Text style={[styles.label, { color: themeColors.text }]}>Confirm New Password</Text>
+                        <TextInput
+                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          value={confirmPassword}
+                          onChangeText={setConfirmPassword}
+                          secureTextEntry
+                          placeholder="Confirm new password"
+                          placeholderTextColor={themeColors.textSecondary}
+                        />
+
+                        <Pressable
+                          style={[styles.button, { backgroundColor: colors.secondary }]}
+                          onPress={handleChangePassword}
+                        >
+                          <Text style={styles.buttonText}>Update Password</Text>
+                        </Pressable>
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </View>
-    </SafeAreaView>
+
+            {/* Info Section */}
+            <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+              <View style={styles.infoRow}>
+                <IconSymbol 
+                  ios_icon_name="info.circle" 
+                  android_material_icon_name="info" 
+                  size={20} 
+                  color={colors.primary} 
+                />
+                <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
+                  Your password is stored securely on your device using the same encryption as other passwords on your phone.
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    </>
   );
 }
 
@@ -327,23 +326,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  backText: {
-    fontSize: 17,
-    fontWeight: '400',
-  },
   scrollContent: {
-    paddingTop: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    paddingTop: 24,
     paddingBottom: 100,
   },
   section: {
