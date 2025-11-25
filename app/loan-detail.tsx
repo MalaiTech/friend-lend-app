@@ -11,6 +11,8 @@ import {
   Image,
   TextInput,
   Modal,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -251,22 +253,25 @@ export default function LoanDetailScreen() {
   };
 
   const handleEditPayment = (payment: any) => {
+    console.log('Editing payment:', payment);
     setEditingPayment(payment);
     setEditAmount(payment.amount.toString());
     // Initialize with the original payment date
-    setEditDate(new Date(payment.date));
+    const paymentDate = new Date(payment.date);
+    console.log('Setting initial edit date to:', paymentDate.toISOString());
+    setEditDate(paymentDate);
   };
 
   const handleEditDateChange = (event: any, selectedDate?: Date) => {
     console.log('Edit date picker event:', event.type, 'Selected date:', selectedDate);
     
-    // On Android, hide the picker after selection
+    // On Android, hide the picker after selection or dismissal
     if (Platform.OS === 'android') {
       setShowEditDatePicker(false);
     }
     
-    // Update the date if a valid date was selected
-    if (selectedDate) {
+    // Update the date if a valid date was selected and not cancelled
+    if (event.type === 'set' && selectedDate) {
       console.log('Setting edit date to:', selectedDate.toISOString());
       setEditDate(selectedDate);
     }
@@ -279,11 +284,13 @@ export default function LoanDetailScreen() {
       return;
     }
 
+    console.log('Saving payment edit with date:', editDate.toISOString());
     await updatePayment(editingPayment.id, {
       amount: amountNum,
       date: editDate.toISOString(),
     });
     setEditingPayment(null);
+    setShowEditDatePicker(false);
   };
 
   const handleDeletePayment = (paymentId: string) => {
@@ -323,16 +330,31 @@ export default function LoanDetailScreen() {
                 <Image source={{ uri: loan.borrowerPhoto }} style={styles.photo} />
               ) : (
                 <View style={[styles.photoPlaceholder, { backgroundColor: themeColors.border }]}>
-                  <IconSymbol name="person.fill" size={40} color={themeColors.textSecondary} />
+                  <IconSymbol 
+                    ios_icon_name="person.fill" 
+                    android_material_icon_name="person" 
+                    size={40} 
+                    color={themeColors.textSecondary} 
+                  />
                 </View>
               )}
               <View style={[styles.editIconContainer, { backgroundColor: themeColors.card }]}>
-                <IconSymbol name="pencil.circle.fill" size={28} color={colors.primary} />
+                <IconSymbol 
+                  ios_icon_name="pencil.circle.fill" 
+                  android_material_icon_name="edit" 
+                  size={28} 
+                  color={colors.primary} 
+                />
               </View>
             </Pressable>
             <Pressable onPress={handleEditBorrower} style={styles.nameEditButton}>
               <Text style={[styles.borrowerNameLarge, { color: themeColors.text }]}>{loan.borrowerName}</Text>
-              <IconSymbol name="pencil" size={18} color={colors.primary} />
+              <IconSymbol 
+                ios_icon_name="pencil" 
+                android_material_icon_name="edit" 
+                size={18} 
+                color={colors.primary} 
+              />
             </Pressable>
             <View
               style={[
@@ -369,7 +391,12 @@ export default function LoanDetailScreen() {
           {interestStatus.monthsOverdue > 0 && loan.status !== 'paid' && (
             <View style={[commonStyles.card, styles.warningCard]}>
               <View style={styles.warningHeader}>
-                <IconSymbol name="exclamationmark.triangle.fill" size={28} color={colors.error} />
+                <IconSymbol 
+                  ios_icon_name="exclamationmark.triangle.fill" 
+                  android_material_icon_name="warning" 
+                  size={28} 
+                  color={colors.error} 
+                />
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.warningTitle}>Interest Payment Overdue!</Text>
                   <Text style={[styles.warningText, { color: themeColors.text }]}>
@@ -495,10 +522,20 @@ export default function LoanDetailScreen() {
                         </View>
                         <View style={styles.paymentActions}>
                           <Pressable onPress={() => handleEditPayment(payment)} style={styles.actionIcon}>
-                            <IconSymbol name="pencil" size={20} color={colors.primary} />
+                            <IconSymbol 
+                              ios_icon_name="pencil" 
+                              android_material_icon_name="edit" 
+                              size={20} 
+                              color={colors.primary} 
+                            />
                           </Pressable>
                           <Pressable onPress={() => handleDeletePayment(payment.id)} style={styles.actionIcon}>
-                            <IconSymbol name="trash" size={20} color={colors.error} />
+                            <IconSymbol 
+                              ios_icon_name="trash" 
+                              android_material_icon_name="delete" 
+                              size={20} 
+                              color={colors.error} 
+                            />
                           </Pressable>
                         </View>
                       </View>
@@ -522,10 +559,20 @@ export default function LoanDetailScreen() {
                         </View>
                         <View style={styles.paymentActions}>
                           <Pressable onPress={() => handleEditPayment(payment)} style={styles.actionIcon}>
-                            <IconSymbol name="pencil" size={20} color={colors.primary} />
+                            <IconSymbol 
+                              ios_icon_name="pencil" 
+                              android_material_icon_name="edit" 
+                              size={20} 
+                              color={colors.primary} 
+                            />
                           </Pressable>
                           <Pressable onPress={() => handleDeletePayment(payment.id)} style={styles.actionIcon}>
-                            <IconSymbol name="trash" size={20} color={colors.error} />
+                            <IconSymbol 
+                              ios_icon_name="trash" 
+                              android_material_icon_name="delete" 
+                              size={20} 
+                              color={colors.error} 
+                            />
                           </Pressable>
                         </View>
                       </View>
@@ -550,74 +597,89 @@ export default function LoanDetailScreen() {
         visible={editingPayment !== null}
         transparent
         animationType="slide"
-        onRequestClose={() => setEditingPayment(null)}
+        onRequestClose={() => {
+          setEditingPayment(null);
+          setShowEditDatePicker(false);
+        }}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
-            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Edit Payment</Text>
-            
-            <Text style={[styles.modalLabel, { color: themeColors.text }]}>Amount ({settings.currencySymbol})</Text>
-            <TextInput
-              style={[styles.modalInput, { backgroundColor: themeColors.background, borderColor: themeColors.border, color: themeColors.text }]}
-              value={editAmount}
-              onChangeText={(text) => {
-                const cleaned = text.replace(/[^0-9]/g, '');
-                setEditAmount(cleaned);
-              }}
-              keyboardType="number-pad"
-              placeholderTextColor={themeColors.textSecondary}
-            />
-
-            <Text style={[styles.modalLabel, { color: themeColors.text }]}>Date</Text>
-            {Platform.OS === 'ios' ? (
-              <DateTimePicker
-                value={editDate}
-                mode="date"
-                display="inline"
-                onChange={handleEditDateChange}
-                style={styles.iosDatePicker}
-                maximumDate={new Date()}
-              />
-            ) : (
-              <>
-                <Pressable
-                  style={[styles.modalDateButton, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
-                  onPress={() => {
-                    console.log('Opening edit date picker with date:', editDate.toISOString());
-                    setShowEditDatePicker(true);
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
+                <Text style={[styles.modalTitle, { color: themeColors.text }]}>Edit Payment</Text>
+                
+                <Text style={[styles.modalLabel, { color: themeColors.text }]}>Amount ({settings.currencySymbol})</Text>
+                <TextInput
+                  style={[styles.modalInput, { backgroundColor: themeColors.background, borderColor: themeColors.border, color: themeColors.text }]}
+                  value={editAmount}
+                  onChangeText={(text) => {
+                    const cleaned = text.replace(/[^0-9]/g, '');
+                    setEditAmount(cleaned);
                   }}
-                >
-                  <Text style={[styles.modalDateText, { color: themeColors.text }]}>{formatDate(editDate.toISOString())}</Text>
-                  <IconSymbol name="calendar" size={20} color={colors.primary} />
-                </Pressable>
-                {showEditDatePicker && (
+                  keyboardType="number-pad"
+                  placeholderTextColor={themeColors.textSecondary}
+                />
+
+                <Text style={[styles.modalLabel, { color: themeColors.text }]}>Date</Text>
+                {Platform.OS === 'ios' ? (
                   <DateTimePicker
                     value={editDate}
                     mode="date"
-                    display="default"
+                    display="inline"
                     onChange={handleEditDateChange}
+                    style={styles.iosDatePicker}
                     maximumDate={new Date()}
                   />
+                ) : (
+                  <>
+                    <Pressable
+                      style={[styles.modalDateButton, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                      onPress={() => {
+                        console.log('Opening edit date picker with date:', editDate.toISOString());
+                        setShowEditDatePicker(true);
+                      }}
+                    >
+                      <Text style={[styles.modalDateText, { color: themeColors.text }]}>{formatDate(editDate.toISOString())}</Text>
+                      <IconSymbol 
+                        ios_icon_name="calendar" 
+                        android_material_icon_name="calendar_today" 
+                        size={20} 
+                        color={colors.primary} 
+                      />
+                    </Pressable>
+                    {showEditDatePicker && (
+                      <DateTimePicker
+                        value={editDate}
+                        mode="date"
+                        display="default"
+                        onChange={handleEditDateChange}
+                        maximumDate={new Date()}
+                      />
+                    )}
+                  </>
                 )}
-              </>
-            )}
 
-            <View style={styles.modalButtons}>
-              <Pressable
-                style={[styles.modalButton, styles.modalButtonCancel, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
-                onPress={() => setEditingPayment(null)}
-              >
-                <Text style={[styles.modalButtonTextCancel, { color: themeColors.text }]}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalButton, styles.modalButtonSave, { backgroundColor: colors.primary }]}
-                onPress={handleSavePaymentEdit}
-              >
-                <Text style={[styles.modalButtonTextSave, { color: themeColors.card }]}>Save</Text>
-              </Pressable>
-            </View>
+                <View style={styles.modalButtons}>
+                  <Pressable
+                    style={[styles.modalButton, styles.modalButtonCancel, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                    onPress={() => {
+                      setEditingPayment(null);
+                      setShowEditDatePicker(false);
+                    }}
+                  >
+                    <Text style={[styles.modalButtonTextCancel, { color: themeColors.text }]}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.modalButton, styles.modalButtonSave, { backgroundColor: colors.primary }]}
+                    onPress={handleSavePaymentEdit}
+                  >
+                    <Text style={[styles.modalButtonTextSave, { color: themeColors.card }]}>Save</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {/* Edit Borrower Modal */}
@@ -627,40 +689,49 @@ export default function LoanDetailScreen() {
         animationType="slide"
         onRequestClose={() => setEditingBorrower(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
-            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Edit Borrower</Text>
-            
-            <Text style={[styles.modalLabel, { color: themeColors.text }]}>Name</Text>
-            <TextInput
-              style={[styles.modalInput, { backgroundColor: themeColors.background, borderColor: themeColors.border, color: themeColors.text }]}
-              value={editBorrowerName}
-              onChangeText={setEditBorrowerName}
-              placeholder="Enter borrower name"
-              placeholderTextColor={themeColors.textSecondary}
-            />
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
+                <Text style={[styles.modalTitle, { color: themeColors.text }]}>Edit Borrower</Text>
+                
+                <Text style={[styles.modalLabel, { color: themeColors.text }]}>Name</Text>
+                <TextInput
+                  style={[styles.modalInput, { backgroundColor: themeColors.background, borderColor: themeColors.border, color: themeColors.text }]}
+                  value={editBorrowerName}
+                  onChangeText={setEditBorrowerName}
+                  placeholder="Enter borrower name"
+                  placeholderTextColor={themeColors.textSecondary}
+                />
 
-            <Pressable style={[styles.contactsButton, { borderColor: themeColors.border, backgroundColor: themeColors.background }]} onPress={handleSelectFromContacts}>
-              <IconSymbol name="person.crop.circle.badge.plus" size={24} color={colors.primary} />
-              <Text style={styles.contactsButtonText}>Select from Contacts</Text>
-            </Pressable>
+                <Pressable style={[styles.contactsButton, { borderColor: themeColors.border, backgroundColor: themeColors.background }]} onPress={handleSelectFromContacts}>
+                  <IconSymbol 
+                    ios_icon_name="person.crop.circle.badge.plus" 
+                    android_material_icon_name="person_add" 
+                    size={24} 
+                    color={colors.primary} 
+                  />
+                  <Text style={styles.contactsButtonText}>Select from Contacts</Text>
+                </Pressable>
 
-            <View style={styles.modalButtons}>
-              <Pressable
-                style={[styles.modalButton, styles.modalButtonCancel, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
-                onPress={() => setEditingBorrower(false)}
-              >
-                <Text style={[styles.modalButtonTextCancel, { color: themeColors.text }]}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalButton, styles.modalButtonSave, { backgroundColor: colors.primary }]}
-                onPress={handleSaveBorrowerName}
-              >
-                <Text style={[styles.modalButtonTextSave, { color: themeColors.card }]}>Save</Text>
-              </Pressable>
-            </View>
+                <View style={styles.modalButtons}>
+                  <Pressable
+                    style={[styles.modalButton, styles.modalButtonCancel, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                    onPress={() => setEditingBorrower(false)}
+                  >
+                    <Text style={[styles.modalButtonTextCancel, { color: themeColors.text }]}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.modalButton, styles.modalButtonSave, { backgroundColor: colors.primary }]}
+                    onPress={handleSaveBorrowerName}
+                  >
+                    <Text style={[styles.modalButtonTextSave, { color: themeColors.card }]}>Save</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </>
   );
