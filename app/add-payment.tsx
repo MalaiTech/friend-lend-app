@@ -51,13 +51,20 @@ export default function AddPaymentScreen() {
     console.log('Date picker event:', event.type, 'Selected date:', selectedDate);
     
     if (Platform.OS === 'android') {
-      // On Android, always hide the picker after any interaction
-      setShowDatePicker(false);
+      // On Android, hide the picker when user dismisses or confirms
+      // event.type can be 'set' (user confirmed) or 'dismissed' (user cancelled)
+      if (event.type === 'dismissed') {
+        setShowDatePicker(false);
+        // Don't update the date if user cancelled
+        return;
+      } else if (event.type === 'set') {
+        setShowDatePicker(false);
+      }
     }
     
     // Update the date if a valid date was selected
     // On iOS, this fires on every scroll/change
-    // On Android, this only fires when user confirms or dismisses
+    // On Android, this fires when user confirms
     if (selectedDate) {
       console.log('Setting date to:', selectedDate.toISOString());
       setDate(selectedDate);

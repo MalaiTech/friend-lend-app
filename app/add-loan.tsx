@@ -13,7 +13,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Contacts from 'expo-contacts';
 import * as ImagePicker from 'expo-image-picker';
 import { colors, commonStyles, buttonStyles, useThemeColors } from '@/styles/commonStyles';
@@ -135,15 +135,24 @@ export default function AddLoanScreen() {
     }
   };
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
+  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     console.log('Date picker event:', event.type, 'Selected date:', selectedDate);
     
-    // On Android, hide the picker after selection
     if (Platform.OS === 'android') {
-      setShowStartDatePicker(false);
+      // On Android, hide the picker when user dismisses or confirms
+      // event.type can be 'set' (user confirmed) or 'dismissed' (user cancelled)
+      if (event.type === 'dismissed') {
+        setShowStartDatePicker(false);
+        // Don't update the date if user cancelled
+        return;
+      } else if (event.type === 'set') {
+        setShowStartDatePicker(false);
+      }
     }
     
     // Update the date if a valid date was selected
+    // On iOS, this fires on every scroll/change
+    // On Android, this fires when user confirms
     if (selectedDate) {
       console.log('Setting start date to:', selectedDate.toISOString());
       setStartDate(selectedDate);
