@@ -8,8 +8,8 @@ import {
   Pressable,
   Alert,
   Image,
-  useColorScheme,
-  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,6 +28,7 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabledState] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   useEffect(() => {
     checkBiometricAndAuthenticate();
@@ -60,12 +61,19 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         promptMessage: 'Authenticate to access Friend2Lend',
         fallbackLabel: 'Use password',
         cancelLabel: 'Cancel',
+        disableDeviceFallback: false,
       });
+
+      console.log('Biometric authentication result:', result);
 
       if (result.success) {
         onAuthenticated();
       } else {
-        console.log('Biometric authentication failed');
+        if (result.error === 'user_cancel' || result.error === 'app_cancel') {
+          console.log('Biometric authentication cancelled by user');
+        } else {
+          console.log('Biometric authentication failed:', result.error);
+        }
       }
     } catch (error) {
       console.error('Biometric authentication error:', error);
@@ -79,6 +87,7 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       if (password === storedPassword) {
         setPassword('');
         setAttempts(0);
+        Keyboard.dismiss();
         onAuthenticated();
       } else {
         const newAttempts = attempts + 1;
@@ -101,75 +110,91 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
     }
   };
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+    setIsPasswordFocused(false);
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <View style={styles.content}>
-          {/* App Icon */}
-          <View style={styles.iconContainer}>
-            <Image
-              source={require('@/assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png')}
-              style={styles.appIcon}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* App Name */}
-          <Text style={[styles.appName, { color: themeColors.text }]}>Friend2Lend</Text>
-          <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
-            Enter your password to continue
-          </Text>
-
-          {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <View style={[styles.inputWrapper, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-              <IconSymbol name="lock.fill" size={20} color={themeColors.textSecondary} />
-              <TextInput
-                style={[styles.input, { color: themeColors.text }]}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                placeholder="Enter password"
-                placeholderTextColor={themeColors.textSecondary}
-                onSubmitEditing={handlePasswordAuth}
-                autoFocus={!biometricEnabled}
+      <TouchableWithoutFeedback onPress={dismissKeyboard}>
+        <View style={styles.container}>
+          <View style={styles.content}>
+            {/* App Icon - positioned lower */}
+            <View style={styles.iconContainer}>
+              <Image
+                source={require('@/assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png')}
+                style={styles.appIcon}
+                resizeMode="contain"
               />
             </View>
 
-            <Pressable
-              style={[styles.button, { backgroundColor: colors.primary }]}
-              onPress={handlePasswordAuth}
-              disabled={!password}
-            >
-              <Text style={styles.buttonText}>Unlock</Text>
-            </Pressable>
-          </View>
+            {/* App Name */}
+            <Text style={[styles.appName, { color: themeColors.text }]}>Friend2Lend</Text>
+            <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
+              Enter your password to continue
+            </Text>
 
-          {/* Biometric Button */}
-          {biometricEnabled && biometricAvailable && (
-            <View style={styles.biometricContainer}>
-              <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-              <Text style={[styles.orText, { color: themeColors.textSecondary }]}>or</Text>
-              <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+            {/* Password Input */}
+            <View style={styles.inputContainer}>
+              <View style={[styles.inputWrapper, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
+                <IconSymbol 
+                  ios_icon_name="lock.fill" 
+                  android_material_icon_name="lock" 
+                  size={20} 
+                  color={themeColors.textSecondary} 
+                />
+                <TextInput
+                  style={[styles.input, { color: themeColors.text }]}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  placeholder="Enter password"
+                  placeholderTextColor={themeColors.textSecondary}
+                  onSubmitEditing={handlePasswordAuth}
+                  onFocus={() => setIsPasswordFocused(true)}
+                  onBlur={() => setIsPasswordFocused(false)}
+                  autoFocus={false}
+                />
+              </View>
+
+              <Pressable
+                style={[styles.button, { backgroundColor: colors.primary, opacity: !password ? 0.5 : 1 }]}
+                onPress={handlePasswordAuth}
+                disabled={!password}
+              >
+                <Text style={styles.buttonText}>Unlock</Text>
+              </Pressable>
             </View>
-          )}
 
-          {biometricEnabled && biometricAvailable && (
-            <Pressable
-              style={[styles.biometricButton, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
-              onPress={handleBiometricAuth}
-            >
-              <IconSymbol name="faceid" size={32} color={colors.primary} />
-              <Text style={[styles.biometricText, { color: themeColors.text }]}>
-                Use Face ID / Touch ID
-              </Text>
-            </Pressable>
-          )}
+            {/* Biometric Button */}
+            {biometricEnabled && biometricAvailable && (
+              <>
+                <View style={styles.biometricContainer}>
+                  <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+                  <Text style={[styles.orText, { color: themeColors.textSecondary }]}>or</Text>
+                  <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+                </View>
+
+                <Pressable
+                  style={[styles.biometricButton, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+                  onPress={handleBiometricAuth}
+                >
+                  <IconSymbol 
+                    ios_icon_name="faceid" 
+                    android_material_icon_name="fingerprint" 
+                    size={32} 
+                    color={colors.primary} 
+                  />
+                  <Text style={[styles.biometricText, { color: themeColors.text }]}>
+                    {Platform.OS === 'ios' ? 'Use Face ID / Touch ID' : 'Use Biometric'}
+                  </Text>
+                </Pressable>
+              </>
+            )}
+          </View>
         </View>
-      </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -186,6 +211,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    paddingBottom: 80,
   },
   iconContainer: {
     width: 120,
@@ -194,7 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4A9FD8',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
     boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
     elevation: 5,
   },
@@ -209,12 +235,12 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    marginBottom: 40,
+    marginBottom: 48,
     textAlign: 'center',
   },
   inputContainer: {
     width: '100%',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -265,6 +291,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     gap: 12,
+    width: '100%',
   },
   biometricText: {
     fontSize: 16,
