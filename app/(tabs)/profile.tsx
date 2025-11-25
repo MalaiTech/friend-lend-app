@@ -8,7 +8,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
-import { clearAllData, hasPassword, isBiometricEnabled } from '@/utils/storage';
+import { clearAllData, hasPassword } from '@/utils/storage';
 import { useSettings } from '@/hooks/useSettings';
 import { useLoans } from '@/hooks/useLoans';
 import { getCurrencyByCode } from '@/utils/currencies';
@@ -39,10 +39,10 @@ export default function SettingsScreen() {
   const checkSecurityStatus = async () => {
     try {
       const passwordSet = await hasPassword();
-      const biometricEnabled = await isBiometricEnabled();
-      setSecurityEnabled(passwordSet || biometricEnabled);
+      setSecurityEnabled(passwordSet);
     } catch (error) {
       console.error('Error checking security status:', error);
+      setSecurityEnabled(false);
     }
   };
 
@@ -564,9 +564,9 @@ export default function SettingsScreen() {
                     <IconSymbol name="lock.fill" size={24} color={colors.primary} />
                   </View>
                   <View>
-                    <Text style={[styles.settingTitle, { color: themeColors.text }]}>Password & Biometric Lock</Text>
+                    <Text style={[styles.settingTitle, { color: themeColors.text }]}>Password Lock</Text>
                     <Text style={[styles.settingSubtitle, { color: themeColors.textSecondary }]}>
-                      {securityEnabled ? 'Security enabled' : 'Protect your app with a password'}
+                      {securityEnabled ? 'Password protection enabled' : 'Protect your app with a password'}
                     </Text>
                   </View>
                 </View>
