@@ -50,15 +50,23 @@ export default function AddPaymentScreen() {
   const handleDateChange = (event: any, selectedDate?: Date) => {
     console.log('Date picker event:', event.type, 'Selected date:', selectedDate);
     
-    // On Android, hide the picker after selection
+    // On Android, the picker closes automatically after selection
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
-    }
-    
-    // Update the date if a valid date was selected
-    if (selectedDate) {
-      console.log('Setting payment date to:', selectedDate.toISOString());
-      setDate(selectedDate);
+      
+      // Only update if user confirmed (not dismissed/cancelled)
+      if (event.type === 'set' && selectedDate) {
+        console.log('Android: User confirmed date selection, setting date to:', selectedDate.toISOString());
+        setDate(selectedDate);
+      } else if (event.type === 'dismissed') {
+        console.log('Android: User dismissed date picker, keeping current date');
+      }
+    } else {
+      // On iOS with inline picker, update immediately on any change
+      if (selectedDate) {
+        console.log('iOS: Setting date to:', selectedDate.toISOString());
+        setDate(selectedDate);
+      }
     }
   };
 

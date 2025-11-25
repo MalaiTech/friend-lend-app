@@ -266,15 +266,23 @@ export default function LoanDetailScreen() {
   const handleEditDateChange = (event: any, selectedDate?: Date) => {
     console.log('Edit date picker event:', event.type, 'Selected date:', selectedDate);
     
-    // On Android, hide the picker after selection or dismissal
+    // On Android, the picker closes automatically after selection
     if (Platform.OS === 'android') {
       setShowEditDatePicker(false);
-    }
-    
-    // Update the date if a valid date was selected and not cancelled
-    if (selectedDate && event.type !== 'dismissed') {
-      console.log('Setting edit date to:', selectedDate.toISOString());
-      setEditDate(selectedDate);
+      
+      // Only update if user confirmed (not dismissed/cancelled)
+      if (event.type === 'set' && selectedDate) {
+        console.log('Android: User confirmed date selection, setting edit date to:', selectedDate.toISOString());
+        setEditDate(selectedDate);
+      } else if (event.type === 'dismissed') {
+        console.log('Android: User dismissed date picker, keeping current date');
+      }
+    } else {
+      // On iOS with inline picker, update immediately on any change
+      if (selectedDate) {
+        console.log('iOS: Setting edit date to:', selectedDate.toISOString());
+        setEditDate(selectedDate);
+      }
     }
   };
 
