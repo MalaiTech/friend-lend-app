@@ -260,6 +260,7 @@ export default function LoanDetailScreen() {
     const paymentDate = new Date(payment.date);
     console.log('Setting initial edit date to:', paymentDate.toISOString());
     setEditDate(paymentDate);
+    setShowEditDatePicker(false);
   };
 
   const handleEditDateChange = (event: any, selectedDate?: Date) => {
@@ -271,7 +272,7 @@ export default function LoanDetailScreen() {
     }
     
     // Update the date if a valid date was selected and not cancelled
-    if (event.type === 'set' && selectedDate) {
+    if (selectedDate && event.type !== 'dismissed') {
       console.log('Setting edit date to:', selectedDate.toISOString());
       setEditDate(selectedDate);
     }
@@ -316,6 +317,16 @@ export default function LoanDetailScreen() {
         options={{
           title: loan.borrowerName,
           headerBackTitle: 'Back',
+          headerRight: () => (
+            <Pressable onPress={handleDeleteLoan} style={{ padding: 8 }}>
+              <IconSymbol 
+                ios_icon_name="trash" 
+                android_material_icon_name="delete" 
+                size={22} 
+                color={colors.error} 
+              />
+            </Pressable>
+          ),
         }}
       />
       <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
@@ -352,7 +363,7 @@ export default function LoanDetailScreen() {
               <IconSymbol 
                 ios_icon_name="pencil" 
                 android_material_icon_name="edit" 
-                size={18} 
+                size={20} 
                 color={colors.primary} 
               />
             </Pressable>
@@ -521,19 +532,27 @@ export default function LoanDetailScreen() {
                           )}
                         </View>
                         <View style={styles.paymentActions}>
-                          <Pressable onPress={() => handleEditPayment(payment)} style={styles.actionIcon}>
+                          <Pressable 
+                            onPress={() => handleEditPayment(payment)} 
+                            style={styles.actionIcon}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                          >
                             <IconSymbol 
-                              ios_icon_name="pencil" 
+                              ios_icon_name="pencil.circle.fill" 
                               android_material_icon_name="edit" 
-                              size={20} 
+                              size={28} 
                               color={colors.primary} 
                             />
                           </Pressable>
-                          <Pressable onPress={() => handleDeletePayment(payment.id)} style={styles.actionIcon}>
+                          <Pressable 
+                            onPress={() => handleDeletePayment(payment.id)} 
+                            style={styles.actionIcon}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                          >
                             <IconSymbol 
-                              ios_icon_name="trash" 
+                              ios_icon_name="trash.circle.fill" 
                               android_material_icon_name="delete" 
-                              size={20} 
+                              size={28} 
                               color={colors.error} 
                             />
                           </Pressable>
@@ -558,19 +577,27 @@ export default function LoanDetailScreen() {
                           )}
                         </View>
                         <View style={styles.paymentActions}>
-                          <Pressable onPress={() => handleEditPayment(payment)} style={styles.actionIcon}>
+                          <Pressable 
+                            onPress={() => handleEditPayment(payment)} 
+                            style={styles.actionIcon}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                          >
                             <IconSymbol 
-                              ios_icon_name="pencil" 
+                              ios_icon_name="pencil.circle.fill" 
                               android_material_icon_name="edit" 
-                              size={20} 
+                              size={28} 
                               color={colors.primary} 
                             />
                           </Pressable>
-                          <Pressable onPress={() => handleDeletePayment(payment.id)} style={styles.actionIcon}>
+                          <Pressable 
+                            onPress={() => handleDeletePayment(payment.id)} 
+                            style={styles.actionIcon}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                          >
                             <IconSymbol 
-                              ios_icon_name="trash" 
+                              ios_icon_name="trash.circle.fill" 
                               android_material_icon_name="delete" 
-                              size={20} 
+                              size={28} 
                               color={colors.error} 
                             />
                           </Pressable>
@@ -582,11 +609,6 @@ export default function LoanDetailScreen() {
               </>
             )}
           </View>
-
-          {/* Delete Button */}
-          <Pressable style={[styles.deleteButton, { borderColor: colors.error }]} onPress={handleDeleteLoan}>
-            <Text style={styles.deleteButtonText}>Delete Loan</Text>
-          </Pressable>
 
           <View style={{ height: 40 }} />
         </ScrollView>
@@ -905,7 +927,8 @@ const styles = StyleSheet.create({
   },
   paymentActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
+    alignItems: 'center',
   },
   actionIcon: {
     padding: 4,
