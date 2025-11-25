@@ -13,6 +13,7 @@ import {
   Modal,
   Keyboard,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -621,80 +622,97 @@ export default function LoanDetailScreen() {
           setShowEditDatePicker(false);
         }}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
-            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Edit Payment</Text>
-            
-            <Text style={[styles.modalLabel, { color: themeColors.text }]}>Amount ({settings.currencySymbol})</Text>
-            <TextInput
-              style={[styles.modalInput, { backgroundColor: themeColors.background, borderColor: themeColors.border, color: themeColors.text }]}
-              value={editAmount}
-              onChangeText={(text) => {
-                const cleaned = text.replace(/[^0-9]/g, '');
-                setEditAmount(cleaned);
-              }}
-              keyboardType="number-pad"
-              placeholderTextColor={themeColors.textSecondary}
-            />
-
-            <Text style={[styles.modalLabel, { color: themeColors.text }]}>Date</Text>
-            {Platform.OS === 'ios' ? (
-              <View style={styles.datePickerContainer}>
-                <DateTimePicker
-                  value={editDate}
-                  mode="date"
-                  display="inline"
-                  onChange={handleEditDateChange}
-                  maximumDate={new Date()}
-                />
-              </View>
-            ) : (
-              <>
-                <Pressable
-                  style={[styles.modalDateButton, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
-                  onPress={() => {
-                    console.log('Opening edit date picker with date:', editDate.toISOString());
-                    setShowEditDatePicker(true);
-                  }}
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalOverlayInner}>
+              <TouchableWithoutFeedback>
+                <ScrollView
+                  contentContainerStyle={styles.modalScrollContent}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  bounces={false}
                 >
-                  <Text style={[styles.modalDateText, { color: themeColors.text }]}>{formatDate(editDate.toISOString())}</Text>
-                  <IconSymbol 
-                    name="calendar" 
-                    size={20} 
-                    color={colors.primary} 
-                  />
-                </Pressable>
-                {showEditDatePicker && (
-                  <DateTimePicker
-                    value={editDate}
-                    mode="date"
-                    display="default"
-                    onChange={handleEditDateChange}
-                    maximumDate={new Date()}
-                  />
-                )}
-              </>
-            )}
+                  <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
+                    <Text style={[styles.modalTitle, { color: themeColors.text }]}>Edit Payment</Text>
+                    
+                    <Text style={[styles.modalLabel, { color: themeColors.text }]}>Amount ({settings.currencySymbol})</Text>
+                    <TextInput
+                      style={[styles.modalInput, { backgroundColor: themeColors.background, borderColor: themeColors.border, color: themeColors.text }]}
+                      value={editAmount}
+                      onChangeText={(text) => {
+                        const cleaned = text.replace(/[^0-9]/g, '');
+                        setEditAmount(cleaned);
+                      }}
+                      keyboardType="number-pad"
+                      placeholderTextColor={themeColors.textSecondary}
+                    />
 
-            <View style={styles.modalButtons}>
-              <Pressable
-                style={[styles.modalButton, styles.modalButtonCancel, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
-                onPress={() => {
-                  setEditingPayment(null);
-                  setShowEditDatePicker(false);
-                }}
-              >
-                <Text style={[styles.modalButtonTextCancel, { color: themeColors.text }]}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalButton, styles.modalButtonSave, { backgroundColor: colors.primary }]}
-                onPress={handleSavePaymentEdit}
-              >
-                <Text style={[styles.modalButtonTextSave, { color: themeColors.card }]}>Save</Text>
-              </Pressable>
+                    <Text style={[styles.modalLabel, { color: themeColors.text }]}>Date</Text>
+                    {Platform.OS === 'ios' ? (
+                      <View style={styles.datePickerContainer}>
+                        <DateTimePicker
+                          value={editDate}
+                          mode="date"
+                          display="inline"
+                          onChange={handleEditDateChange}
+                          maximumDate={new Date()}
+                          themeVariant={themeColors.background === '#000000' ? 'dark' : 'light'}
+                        />
+                      </View>
+                    ) : (
+                      <>
+                        <Pressable
+                          style={[styles.modalDateButton, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                          onPress={() => {
+                            console.log('Opening edit date picker with date:', editDate.toISOString());
+                            setShowEditDatePicker(true);
+                          }}
+                        >
+                          <Text style={[styles.modalDateText, { color: themeColors.text }]}>{formatDate(editDate.toISOString())}</Text>
+                          <IconSymbol 
+                            name="calendar" 
+                            size={20} 
+                            color={colors.primary} 
+                          />
+                        </Pressable>
+                        {showEditDatePicker && (
+                          <DateTimePicker
+                            value={editDate}
+                            mode="date"
+                            display="default"
+                            onChange={handleEditDateChange}
+                            maximumDate={new Date()}
+                          />
+                        )}
+                      </>
+                    )}
+
+                    <View style={styles.modalButtons}>
+                      <Pressable
+                        style={[styles.modalButton, styles.modalButtonCancel, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                        onPress={() => {
+                          setEditingPayment(null);
+                          setShowEditDatePicker(false);
+                        }}
+                      >
+                        <Text style={[styles.modalButtonTextCancel, { color: themeColors.text }]}>Cancel</Text>
+                      </Pressable>
+                      <Pressable
+                        style={[styles.modalButton, styles.modalButtonSave, { backgroundColor: colors.primary }]}
+                        onPress={handleSavePaymentEdit}
+                      >
+                        <Text style={[styles.modalButtonTextSave, { color: themeColors.card }]}>Save</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </ScrollView>
+              </TouchableWithoutFeedback>
             </View>
-          </View>
-        </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Edit Borrower Modal */}
@@ -947,10 +965,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
+  modalOverlayInner: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
   modalContent: {
     borderRadius: 16,
     padding: 24,
-    width: '100%',
+    width: '90%',
     maxWidth: 400,
   },
   modalTitle: {
