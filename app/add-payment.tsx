@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { colors, commonStyles, buttonStyles, useThemeColors } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -22,27 +22,43 @@ export default function AddPaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const loanId = params.loanId as string;
+  const themeColors = useThemeColors();
 
   const { addPayment, loans, getPaymentsForLoan } = useLoans();
   const { settings } = useSettings();
   const loan = loans.find((l) => l.id === loanId);
 
   const [amount, setAmount] = useState('');
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(new Date()); // Default to current date
   const [note, setNote] = useState('');
   const [paymentType, setPaymentType] = useState<'principal' | 'interest'>('principal');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   if (!loan) {
     return (
-      <View style={commonStyles.container}>
-        <Text style={styles.errorText}>Loan not found</Text>
+      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
+        <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>Loan not found</Text>
       </View>
     );
   }
 
   const interestStatus = getInterestPaymentStatus(loan, getPaymentsForLoan(loanId));
   const monthlyInterest = calculateMonthlyInterest(loan.amount, loan.interestRate);
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    console.log('Date picker event:', event.type, 'Selected date:', selectedDate);
+    
+    // On Android, hide the picker after selection
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    // Update the date if a valid date was selected
+    if (selectedDate) {
+      console.log('Setting payment date to:', selectedDate.toISOString());
+      setDate(selectedDate);
+    }
+  };
 
   const handleSave = async () => {
     const amountNum = parseInt(amount, 10);
@@ -82,16 +98,16 @@ export default function AddPaymentScreen() {
           ),
         }}
       />
-      <View style={commonStyles.container}>
+      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {/* Loan Info */}
-          <View style={[commonStyles.card, styles.loanInfoCard]}>
-            <Text style={styles.loanInfoLabel}>Payment for</Text>
-            <Text style={styles.loanInfoValue}>{loan.borrowerName}</Text>
+          <View style={[commonStyles.card, styles.loanInfoCard, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.loanInfoLabel, { color: themeColors.textSecondary }]}>Payment for</Text>
+            <Text style={[styles.loanInfoValue, { color: themeColors.text }]}>{loan.borrowerName}</Text>
           </View>
 
           {/* Interest Warning */}
@@ -101,13 +117,13 @@ export default function AddPaymentScreen() {
                 <IconSymbol name="exclamationmark.triangle.fill" size={24} color={colors.error} />
                 <Text style={styles.warningTitle}>Interest Payment Overdue</Text>
               </View>
-              <Text style={styles.warningText}>
+              <Text style={[styles.warningText, { color: themeColors.text }]}>
                 {interestStatus.monthsOverdue} month{interestStatus.monthsOverdue > 1 ? 's' : ''} of interest unpaid
               </Text>
               <Text style={styles.warningAmount}>
                 Amount due: {settings.currencySymbol}{interestStatus.amountDue.toLocaleString()}
               </Text>
-              <Text style={styles.warningSubtext}>
+              <Text style={[styles.warningSubtext, { color: themeColors.textSecondary }]}>
                 Monthly interest: {settings.currencySymbol}{monthlyInterest.toLocaleString()}
               </Text>
             </View>
@@ -115,11 +131,12 @@ export default function AddPaymentScreen() {
 
           {/* Payment Type */}
           <View style={styles.inputGroup}>
-            <Text style={commonStyles.label}>Payment Type</Text>
+            <Text style={[commonStyles.label, { color: themeColors.text }]}>Payment Type</Text>
             <View style={styles.paymentTypeContainer}>
               <Pressable
                 style={[
                   styles.paymentTypeButton,
+                  { backgroundColor: themeColors.card, borderColor: themeColors.border },
                   paymentType === 'principal' && styles.paymentTypeButtonActive,
                 ]}
                 onPress={() => setPaymentType('principal')}
@@ -127,11 +144,12 @@ export default function AddPaymentScreen() {
                 <IconSymbol 
                   name="banknote" 
                   size={20} 
-                  color={paymentType === 'principal' ? colors.primary : colors.textSecondary} 
+                  color={paymentType === 'principal' ? colors.primary : themeColors.textSecondary} 
                 />
                 <Text
                   style={[
                     styles.paymentTypeText,
+                    { color: themeColors.textSecondary },
                     paymentType === 'principal' && styles.paymentTypeTextActive,
                   ]}
                 >
@@ -141,6 +159,7 @@ export default function AddPaymentScreen() {
               <Pressable
                 style={[
                   styles.paymentTypeButton,
+                  { backgroundColor: themeColors.card, borderColor: themeColors.border },
                   paymentType === 'interest' && styles.paymentTypeButtonActive,
                 ]}
                 onPress={() => setPaymentType('interest')}
@@ -148,11 +167,12 @@ export default function AddPaymentScreen() {
                 <IconSymbol 
                   name="percent" 
                   size={20} 
-                  color={paymentType === 'interest' ? colors.primary : colors.textSecondary} 
+                  color={paymentType === 'interest' ? colors.primary : themeColors.textSecondary} 
                 />
                 <Text
                   style={[
                     styles.paymentTypeText,
+                    { color: themeColors.textSecondary },
                     paymentType === 'interest' && styles.paymentTypeTextActive,
                   ]}
                 >
@@ -164,11 +184,11 @@ export default function AddPaymentScreen() {
 
           {/* Amount */}
           <View style={styles.inputGroup}>
-            <Text style={commonStyles.label}>
+            <Text style={[commonStyles.label, { color: themeColors.text }]}>
               Payment Amount ({settings.currencySymbol})
             </Text>
             <TextInput
-              style={commonStyles.input}
+              style={[commonStyles.input, { backgroundColor: themeColors.card, borderColor: themeColors.border, color: themeColors.text }]}
               value={amount}
               onChangeText={(text) => {
                 // Only allow whole numbers
@@ -176,7 +196,7 @@ export default function AddPaymentScreen() {
                 setAmount(cleaned);
               }}
               placeholder="0"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={themeColors.textSecondary}
               keyboardType="number-pad"
               autoFocus
             />
@@ -194,45 +214,56 @@ export default function AddPaymentScreen() {
 
           {/* Date */}
           <View style={styles.inputGroup}>
-            <Text style={commonStyles.label}>Payment Date</Text>
-            <Pressable
-              style={styles.dateButton}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Text style={styles.dateButtonText}>
-                {date.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </Text>
-              <IconSymbol name="calendar" size={20} color={colors.primary} />
-            </Pressable>
-            {showDatePicker && (
+            <Text style={[commonStyles.label, { color: themeColors.text }]}>Payment Date</Text>
+            {Platform.OS === 'ios' ? (
               <DateTimePicker
                 value={date}
                 mode="date"
-                display="default"
+                display="inline"
+                onChange={handleDateChange}
+                style={styles.iosDatePicker}
                 maximumDate={new Date()}
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(Platform.OS === 'ios');
-                  if (selectedDate) {
-                    setDate(selectedDate);
-                  }
-                }}
               />
+            ) : (
+              <>
+                <Pressable
+                  style={[styles.dateButton, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+                  onPress={() => {
+                    console.log('Opening date picker with date:', date.toISOString());
+                    setShowDatePicker(true);
+                  }}
+                >
+                  <Text style={[styles.dateButtonText, { color: themeColors.text }]}>
+                    {date.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                  <IconSymbol name="calendar" size={20} color={colors.primary} />
+                </Pressable>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                    maximumDate={new Date()}
+                  />
+                )}
+              </>
             )}
           </View>
 
           {/* Note */}
           <View style={styles.inputGroup}>
-            <Text style={commonStyles.label}>Note (Optional)</Text>
+            <Text style={[commonStyles.label, { color: themeColors.text }]}>Note (Optional)</Text>
             <TextInput
-              style={[commonStyles.input, styles.noteInput]}
+              style={[commonStyles.input, styles.noteInput, { backgroundColor: themeColors.card, borderColor: themeColors.border, color: themeColors.text }]}
               value={note}
               onChangeText={setNote}
               placeholder="e.g., Bank transfer, Cash payment..."
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={themeColors.textSecondary}
               multiline
               numberOfLines={3}
               textAlignVertical="top"
@@ -256,7 +287,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 40,
   },
@@ -266,13 +296,11 @@ const styles = StyleSheet.create({
   },
   loanInfoLabel: {
     fontSize: 14,
-    color: colors.textSecondary,
     marginBottom: 4,
   },
   loanInfoValue: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.text,
   },
   warningCard: {
     marginBottom: 16,
@@ -293,7 +321,6 @@ const styles = StyleSheet.create({
   },
   warningText: {
     fontSize: 14,
-    color: colors.text,
     marginBottom: 4,
   },
   warningAmount: {
@@ -304,7 +331,6 @@ const styles = StyleSheet.create({
   },
   warningSubtext: {
     fontSize: 13,
-    color: colors.textSecondary,
   },
   inputGroup: {
     marginBottom: 20,
@@ -322,8 +348,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
     gap: 8,
   },
   paymentTypeButtonActive: {
@@ -333,7 +357,6 @@ const styles = StyleSheet.create({
   paymentTypeText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.textSecondary,
   },
   paymentTypeTextActive: {
     color: colors.primary,
@@ -355,16 +378,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
   dateButtonText: {
     fontSize: 16,
-    color: colors.text,
+  },
+  iosDatePicker: {
+    width: '100%',
   },
   noteInput: {
     height: 80,

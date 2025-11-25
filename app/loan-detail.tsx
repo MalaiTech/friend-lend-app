@@ -16,7 +16,7 @@ import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-rou
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import * as Contacts from 'expo-contacts';
-import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { colors, commonStyles, buttonStyles, useThemeColors } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -36,6 +36,7 @@ export default function LoanDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const loanId = params.id as string;
+  const themeColors = useThemeColors();
 
   const { loans, getPaymentsForLoan, deleteLoan, updateLoan, updatePayment, deletePayment, refreshData } = useLoans();
   const { settings, reloadSettings } = useSettings();
@@ -70,8 +71,8 @@ export default function LoanDetailScreen() {
 
   if (!loan) {
     return (
-      <View style={commonStyles.container}>
-        <Text style={styles.errorText}>Loan not found</Text>
+      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
+        <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>Loan not found</Text>
       </View>
     );
   }
@@ -252,7 +253,23 @@ export default function LoanDetailScreen() {
   const handleEditPayment = (payment: any) => {
     setEditingPayment(payment);
     setEditAmount(payment.amount.toString());
+    // Initialize with the original payment date
     setEditDate(new Date(payment.date));
+  };
+
+  const handleEditDateChange = (event: any, selectedDate?: Date) => {
+    console.log('Edit date picker event:', event.type, 'Selected date:', selectedDate);
+    
+    // On Android, hide the picker after selection
+    if (Platform.OS === 'android') {
+      setShowEditDatePicker(false);
+    }
+    
+    // Update the date if a valid date was selected
+    if (selectedDate) {
+      console.log('Setting edit date to:', selectedDate.toISOString());
+      setEditDate(selectedDate);
+    }
   };
 
   const handleSavePaymentEdit = async () => {
@@ -294,27 +311,27 @@ export default function LoanDetailScreen() {
           headerBackTitle: 'Back',
         }}
       />
-      <View style={commonStyles.container}>
+      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {/* Borrower Info */}
-          <View style={[commonStyles.card, styles.borrowerCard]}>
+          <View style={[commonStyles.card, styles.borrowerCard, { backgroundColor: themeColors.card }]}>
             <Pressable style={styles.photoContainer} onPress={handleChangePhoto}>
               {loan.borrowerPhoto ? (
                 <Image source={{ uri: loan.borrowerPhoto }} style={styles.photo} />
               ) : (
-                <View style={styles.photoPlaceholder}>
-                  <IconSymbol name="person.fill" size={40} color={colors.textSecondary} />
+                <View style={[styles.photoPlaceholder, { backgroundColor: themeColors.border }]}>
+                  <IconSymbol name="person.fill" size={40} color={themeColors.textSecondary} />
                 </View>
               )}
-              <View style={styles.editIconContainer}>
+              <View style={[styles.editIconContainer, { backgroundColor: themeColors.card }]}>
                 <IconSymbol name="pencil.circle.fill" size={28} color={colors.primary} />
               </View>
             </Pressable>
             <Pressable onPress={handleEditBorrower} style={styles.nameEditButton}>
-              <Text style={styles.borrowerNameLarge}>{loan.borrowerName}</Text>
+              <Text style={[styles.borrowerNameLarge, { color: themeColors.text }]}>{loan.borrowerName}</Text>
               <IconSymbol name="pencil" size={18} color={colors.primary} />
             </Pressable>
             <View
@@ -355,13 +372,13 @@ export default function LoanDetailScreen() {
                 <IconSymbol name="exclamationmark.triangle.fill" size={28} color={colors.error} />
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.warningTitle}>Interest Payment Overdue!</Text>
-                  <Text style={styles.warningText}>
+                  <Text style={[styles.warningText, { color: themeColors.text }]}>
                     {interestStatus.monthsOverdue} month{interestStatus.monthsOverdue > 1 ? 's' : ''} unpaid
                   </Text>
                 </View>
               </View>
               <View style={styles.warningAmountContainer}>
-                <Text style={styles.warningLabel}>Amount Due:</Text>
+                <Text style={[styles.warningLabel, { color: themeColors.text }]}>Amount Due:</Text>
                 <Text style={styles.warningAmount}>
                   {formatCurrency(interestStatus.amountDue, settings.currencySymbol)}
                 </Text>
@@ -370,34 +387,34 @@ export default function LoanDetailScreen() {
           )}
 
           {/* Dashboard Summary */}
-          <View style={[commonStyles.card, styles.summaryCard]}>
-            <Text style={styles.cardTitle}>Loan Overview</Text>
+          <View style={[commonStyles.card, styles.summaryCard, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.cardTitle, { color: themeColors.text }]}>Loan Overview</Text>
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Loan Outstanding</Text>
+                <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>Loan Outstanding</Text>
                 <Text style={[styles.summaryValue, { color: loanOutstanding > 0 ? colors.primary : colors.secondary }]}>
                   {formatCurrency(loanOutstanding, settings.currencySymbol)}
                 </Text>
               </View>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Loan Repaid</Text>
+                <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>Loan Repaid</Text>
                 <Text style={[styles.summaryValue, { color: colors.secondary }]}>
                   {formatCurrency(totalRepaid, settings.currencySymbol)}
                 </Text>
               </View>
             </View>
 
-            <View style={commonStyles.divider} />
+            <View style={[commonStyles.divider, { backgroundColor: themeColors.border }]} />
 
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Interest Outstanding</Text>
+                <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>Interest Outstanding</Text>
                 <Text style={[styles.summaryValue, { color: interestOutstanding > 0 ? colors.accent : colors.secondary }]}>
                   {formatCurrency(interestOutstanding, settings.currencySymbol)}
                 </Text>
               </View>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Interest Paid</Text>
+                <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>Interest Paid</Text>
                 <Text style={[styles.summaryValue, { color: colors.secondary }]}>
                   {formatCurrency(totalInterestPaid, settings.currencySymbol)}
                 </Text>
@@ -416,64 +433,64 @@ export default function LoanDetailScreen() {
           </View>
 
           {/* Details Card */}
-          <View style={commonStyles.card}>
-            <Text style={styles.cardTitle}>Loan Details</Text>
+          <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.cardTitle, { color: themeColors.text }]}>Loan Details</Text>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Loan Amount</Text>
-              <Text style={styles.detailValue}>
+              <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>Loan Amount</Text>
+              <Text style={[styles.detailValue, { color: themeColors.text }]}>
                 {formatCurrency(loan.amount, settings.currencySymbol)}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Interest Rate</Text>
-              <Text style={styles.detailValue}>
+              <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>Interest Rate</Text>
+              <Text style={[styles.detailValue, { color: themeColors.text }]}>
                 {loan.interestRate}% monthly ({loan.interestType})
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Monthly Interest</Text>
-              <Text style={styles.detailValue}>
+              <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>Monthly Interest</Text>
+              <Text style={[styles.detailValue, { color: themeColors.text }]}>
                 {formatCurrency(monthlyInterest, settings.currencySymbol)}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Start Date</Text>
-              <Text style={styles.detailValue}>{formatDate(loan.startDate)}</Text>
+              <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>Start Date</Text>
+              <Text style={[styles.detailValue, { color: themeColors.text }]}>{formatDate(loan.startDate)}</Text>
             </View>
             {loan.closeDate && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Closure Date</Text>
-                <Text style={styles.detailValue}>{formatDate(loan.closeDate)}</Text>
+                <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>Closure Date</Text>
+                <Text style={[styles.detailValue, { color: themeColors.text }]}>{formatDate(loan.closeDate)}</Text>
               </View>
             )}
             {loan.notes && (
               <>
-                <View style={commonStyles.divider} />
-                <Text style={styles.detailLabel}>Notes</Text>
-                <Text style={styles.notesText}>{loan.notes}</Text>
+                <View style={[commonStyles.divider, { backgroundColor: themeColors.border }]} />
+                <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>Notes</Text>
+                <Text style={[styles.notesText, { color: themeColors.text }]}>{loan.notes}</Text>
               </>
             )}
           </View>
 
           {/* Payment History */}
-          <View style={commonStyles.card}>
-            <Text style={styles.cardTitle}>Payment History</Text>
+          <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.cardTitle, { color: themeColors.text }]}>Payment History</Text>
             {payments.length === 0 ? (
-              <Text style={styles.emptyText}>No payments yet</Text>
+              <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>No payments yet</Text>
             ) : (
               <>
                 {principalPayments.length > 0 && (
                   <>
-                    <Text style={styles.paymentTypeHeader}>Principal Payments</Text>
+                    <Text style={[styles.paymentTypeHeader, { color: themeColors.text }]}>Principal Payments</Text>
                     {principalPayments.map((payment) => (
-                      <View key={payment.id} style={styles.paymentItem}>
+                      <View key={payment.id} style={[styles.paymentItem, { borderBottomColor: themeColors.border }]}>
                         <View style={{ flex: 1 }}>
-                          <Text style={styles.paymentAmount}>
+                          <Text style={[styles.paymentAmount, { color: themeColors.text }]}>
                             {formatCurrency(payment.amount, settings.currencySymbol)}
                           </Text>
-                          <Text style={styles.paymentDate}>{formatDate(payment.date)}</Text>
+                          <Text style={[styles.paymentDate, { color: themeColors.textSecondary }]}>{formatDate(payment.date)}</Text>
                           {payment.note && (
-                            <Text style={styles.paymentNote}>{payment.note}</Text>
+                            <Text style={[styles.paymentNote, { color: themeColors.textSecondary }]}>{payment.note}</Text>
                           )}
                         </View>
                         <View style={styles.paymentActions}>
@@ -491,16 +508,16 @@ export default function LoanDetailScreen() {
                 
                 {interestPayments.length > 0 && (
                   <>
-                    <Text style={styles.paymentTypeHeader}>Interest Payments</Text>
+                    <Text style={[styles.paymentTypeHeader, { color: themeColors.text }]}>Interest Payments</Text>
                     {interestPayments.map((payment) => (
-                      <View key={payment.id} style={styles.paymentItem}>
+                      <View key={payment.id} style={[styles.paymentItem, { borderBottomColor: themeColors.border }]}>
                         <View style={{ flex: 1 }}>
-                          <Text style={styles.paymentAmount}>
+                          <Text style={[styles.paymentAmount, { color: themeColors.text }]}>
                             {formatCurrency(payment.amount, settings.currencySymbol)}
                           </Text>
-                          <Text style={styles.paymentDate}>{formatDate(payment.date)}</Text>
+                          <Text style={[styles.paymentDate, { color: themeColors.textSecondary }]}>{formatDate(payment.date)}</Text>
                           {payment.note && (
-                            <Text style={styles.paymentNote}>{payment.note}</Text>
+                            <Text style={[styles.paymentNote, { color: themeColors.textSecondary }]}>{payment.note}</Text>
                           )}
                         </View>
                         <View style={styles.paymentActions}>
@@ -520,7 +537,7 @@ export default function LoanDetailScreen() {
           </View>
 
           {/* Delete Button */}
-          <Pressable style={styles.deleteButton} onPress={handleDeleteLoan}>
+          <Pressable style={[styles.deleteButton, { borderColor: colors.error }]} onPress={handleDeleteLoan}>
             <Text style={styles.deleteButtonText}>Delete Loan</Text>
           </Pressable>
 
@@ -536,54 +553,67 @@ export default function LoanDetailScreen() {
         onRequestClose={() => setEditingPayment(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Payment</Text>
+          <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Edit Payment</Text>
             
-            <Text style={styles.modalLabel}>Amount ({settings.currencySymbol})</Text>
+            <Text style={[styles.modalLabel, { color: themeColors.text }]}>Amount ({settings.currencySymbol})</Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { backgroundColor: themeColors.background, borderColor: themeColors.border, color: themeColors.text }]}
               value={editAmount}
               onChangeText={(text) => {
                 const cleaned = text.replace(/[^0-9]/g, '');
                 setEditAmount(cleaned);
               }}
               keyboardType="number-pad"
+              placeholderTextColor={themeColors.textSecondary}
             />
 
-            <Text style={styles.modalLabel}>Date</Text>
-            <Pressable
-              style={styles.modalDateButton}
-              onPress={() => setShowEditDatePicker(true)}
-            >
-              <Text style={styles.modalDateText}>{formatDate(editDate.toISOString())}</Text>
-              <IconSymbol name="calendar" size={20} color={colors.primary} />
-            </Pressable>
-            {showEditDatePicker && (
+            <Text style={[styles.modalLabel, { color: themeColors.text }]}>Date</Text>
+            {Platform.OS === 'ios' ? (
               <DateTimePicker
                 value={editDate}
                 mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowEditDatePicker(Platform.OS === 'ios');
-                  if (selectedDate) {
-                    setEditDate(selectedDate);
-                  }
-                }}
+                display="inline"
+                onChange={handleEditDateChange}
+                style={styles.iosDatePicker}
+                maximumDate={new Date()}
               />
+            ) : (
+              <>
+                <Pressable
+                  style={[styles.modalDateButton, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                  onPress={() => {
+                    console.log('Opening edit date picker with date:', editDate.toISOString());
+                    setShowEditDatePicker(true);
+                  }}
+                >
+                  <Text style={[styles.modalDateText, { color: themeColors.text }]}>{formatDate(editDate.toISOString())}</Text>
+                  <IconSymbol name="calendar" size={20} color={colors.primary} />
+                </Pressable>
+                {showEditDatePicker && (
+                  <DateTimePicker
+                    value={editDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleEditDateChange}
+                    maximumDate={new Date()}
+                  />
+                )}
+              </>
             )}
 
             <View style={styles.modalButtons}>
               <Pressable
-                style={[styles.modalButton, styles.modalButtonCancel]}
+                style={[styles.modalButton, styles.modalButtonCancel, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
                 onPress={() => setEditingPayment(null)}
               >
-                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+                <Text style={[styles.modalButtonTextCancel, { color: themeColors.text }]}>Cancel</Text>
               </Pressable>
               <Pressable
-                style={[styles.modalButton, styles.modalButtonSave]}
+                style={[styles.modalButton, styles.modalButtonSave, { backgroundColor: colors.primary }]}
                 onPress={handleSavePaymentEdit}
               >
-                <Text style={styles.modalButtonTextSave}>Save</Text>
+                <Text style={[styles.modalButtonTextSave, { color: themeColors.card }]}>Save</Text>
               </Pressable>
             </View>
           </View>
@@ -598,35 +628,35 @@ export default function LoanDetailScreen() {
         onRequestClose={() => setEditingBorrower(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Borrower</Text>
+          <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Edit Borrower</Text>
             
-            <Text style={styles.modalLabel}>Name</Text>
+            <Text style={[styles.modalLabel, { color: themeColors.text }]}>Name</Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { backgroundColor: themeColors.background, borderColor: themeColors.border, color: themeColors.text }]}
               value={editBorrowerName}
               onChangeText={setEditBorrowerName}
               placeholder="Enter borrower name"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={themeColors.textSecondary}
             />
 
-            <Pressable style={styles.contactsButton} onPress={handleSelectFromContacts}>
+            <Pressable style={[styles.contactsButton, { borderColor: themeColors.border, backgroundColor: themeColors.background }]} onPress={handleSelectFromContacts}>
               <IconSymbol name="person.crop.circle.badge.plus" size={24} color={colors.primary} />
               <Text style={styles.contactsButtonText}>Select from Contacts</Text>
             </Pressable>
 
             <View style={styles.modalButtons}>
               <Pressable
-                style={[styles.modalButton, styles.modalButtonCancel]}
+                style={[styles.modalButton, styles.modalButtonCancel, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
                 onPress={() => setEditingBorrower(false)}
               >
-                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+                <Text style={[styles.modalButtonTextCancel, { color: themeColors.text }]}>Cancel</Text>
               </Pressable>
               <Pressable
-                style={[styles.modalButton, styles.modalButtonSave]}
+                style={[styles.modalButton, styles.modalButtonSave, { backgroundColor: colors.primary }]}
                 onPress={handleSaveBorrowerName}
               >
-                <Text style={styles.modalButtonTextSave}>Save</Text>
+                <Text style={[styles.modalButtonTextSave, { color: themeColors.card }]}>Save</Text>
               </Pressable>
             </View>
           </View>
@@ -642,7 +672,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 40,
   },
@@ -663,7 +692,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -671,7 +699,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: colors.card,
     borderRadius: 14,
   },
   nameEditButton: {
@@ -683,7 +710,6 @@ const styles = StyleSheet.create({
   borrowerNameLarge: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.text,
   },
   statusBadge: {
     paddingHorizontal: 16,
@@ -713,7 +739,6 @@ const styles = StyleSheet.create({
   },
   warningText: {
     fontSize: 14,
-    color: colors.text,
     marginTop: 2,
   },
   warningAmountContainer: {
@@ -723,7 +748,6 @@ const styles = StyleSheet.create({
   },
   warningLabel: {
     fontSize: 15,
-    color: colors.text,
     fontWeight: '600',
   },
   warningAmount: {
@@ -743,13 +767,11 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 13,
-    color: colors.textSecondary,
     marginBottom: 6,
   },
   summaryValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.text,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -759,7 +781,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 16,
   },
   detailRow: {
@@ -770,29 +791,24 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 15,
-    color: colors.textSecondary,
   },
   detailValue: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.text,
   },
   notesText: {
     fontSize: 15,
-    color: colors.text,
     lineHeight: 22,
     marginTop: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: colors.textSecondary,
     textAlign: 'center',
     paddingVertical: 20,
   },
   paymentTypeHeader: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.text,
     marginTop: 12,
     marginBottom: 8,
   },
@@ -802,21 +818,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   paymentAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text,
     marginBottom: 2,
   },
   paymentDate: {
     fontSize: 13,
-    color: colors.textSecondary,
   },
   paymentNote: {
     fontSize: 13,
-    color: colors.textSecondary,
     fontStyle: 'italic',
     marginTop: 2,
   },
@@ -833,7 +845,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: colors.error,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
@@ -851,7 +862,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -860,33 +870,26 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 20,
   },
   modalLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
     marginBottom: 8,
   },
   modalInput: {
-    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: colors.text,
     marginBottom: 16,
   },
   modalDateButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -894,7 +897,10 @@ const styles = StyleSheet.create({
   },
   modalDateText: {
     fontSize: 16,
-    color: colors.text,
+  },
+  iosDatePicker: {
+    width: '100%',
+    marginBottom: 20,
   },
   contactsButton: {
     flexDirection: 'row',
@@ -905,8 +911,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
     marginBottom: 20,
   },
   contactsButtonText: {
@@ -926,21 +930,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalButtonCancel: {
-    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   modalButtonSave: {
-    backgroundColor: colors.primary,
   },
   modalButtonTextCancel: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text,
   },
   modalButtonTextSave: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.card,
   },
 });
