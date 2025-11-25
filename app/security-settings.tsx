@@ -29,6 +29,7 @@ export default function SecuritySettingsScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     checkSecurityStatus();
@@ -36,10 +37,16 @@ export default function SecuritySettingsScreen() {
 
   const checkSecurityStatus = async () => {
     try {
+      console.log('Checking security status in settings...');
       const passwordSet = await hasPassword();
+      console.log('Password exists:', passwordSet);
       setPasswordExists(passwordSet);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error checking security status:', error);
+      // On error, assume no password exists
+      setPasswordExists(false);
+      setIsLoading(false);
     }
   };
 
@@ -65,10 +72,10 @@ export default function SecuritySettingsScreen() {
       setNewPassword('');
       setConfirmPassword('');
       setShowPasswordSection(false);
-      Alert.alert('Success', 'Password has been set successfully');
+      Alert.alert('Success', 'Password has been set successfully. You will need to enter this password when opening the app.');
     } catch (error) {
       console.error('Error setting password:', error);
-      Alert.alert('Error', 'Failed to set password');
+      Alert.alert('Error', 'Failed to set password. Please try again.');
     }
   };
 
@@ -103,7 +110,7 @@ export default function SecuritySettingsScreen() {
       Alert.alert('Success', 'Password has been changed successfully');
     } catch (error) {
       console.error('Error changing password:', error);
-      Alert.alert('Error', 'Failed to change password');
+      Alert.alert('Error', 'Failed to change password. Please try again.');
     }
   };
 
@@ -120,16 +127,26 @@ export default function SecuritySettingsScreen() {
             try {
               await deletePassword();
               setPasswordExists(false);
-              Alert.alert('Success', 'Password has been removed');
+              Alert.alert('Success', 'Password has been removed. The app will no longer require authentication.');
             } catch (error) {
               console.error('Error removing password:', error);
-              Alert.alert('Error', 'Failed to remove password');
+              Alert.alert('Error', 'Failed to remove password. Please try again.');
             }
           },
         },
       ]
     );
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
+        <View style={[commonStyles.container, { backgroundColor: themeColors.background, justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ color: themeColors.text }}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>

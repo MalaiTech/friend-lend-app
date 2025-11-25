@@ -95,6 +95,9 @@ export async function getAllData(): Promise<{ loans: Loan[]; payments: Payment[]
 // Security functions - Password only
 export async function savePassword(password: string): Promise<void> {
   try {
+    if (!password || typeof password !== 'string') {
+      throw new Error('Invalid password provided');
+    }
     await SecureStore.setItemAsync(PASSWORD_KEY, password);
     console.log('Password saved successfully');
   } catch (error) {
@@ -125,10 +128,13 @@ export async function deletePassword(): Promise<void> {
 
 export async function hasPassword(): Promise<boolean> {
   try {
-    const password = await getPassword();
-    return password !== null && password !== '';
+    const password = await SecureStore.getItemAsync(PASSWORD_KEY);
+    const hasPass = password !== null && password !== undefined && password !== '';
+    console.log('Password check result:', hasPass);
+    return hasPass;
   } catch (error) {
-    console.error('Error checking password:', error);
+    console.error('Error checking if password exists:', error);
+    // Return false on error to allow app to continue without authentication
     return false;
   }
 }

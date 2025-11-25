@@ -35,7 +35,10 @@ export default function RootLayout() {
 
   const checkAuthStatus = async () => {
     try {
+      console.log('Checking authentication status...');
       const passwordSet = await hasPassword();
+      console.log('Password set:', passwordSet);
+      
       setNeedsAuth(passwordSet);
       
       // If no password is set, user is automatically authenticated
@@ -44,11 +47,14 @@ export default function RootLayout() {
       }
       
       setCheckingAuth(false);
-      SplashScreen.hideAsync();
+      await SplashScreen.hideAsync();
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      console.error('Error checking security status:', error);
+      // On error, assume no password is set and allow access
+      setNeedsAuth(false);
+      setIsAuthenticated(true);
       setCheckingAuth(false);
-      SplashScreen.hideAsync();
+      await SplashScreen.hideAsync();
     }
   };
 
