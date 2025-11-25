@@ -76,7 +76,7 @@ export default function DashboardScreen() {
             <View style={styles.headerContainer}>
               <View style={styles.headerIconContainer}>
                 <Image 
-                  source={require('@/assets/images/ad6209b2-efa8-49b8-89c3-bd81dff2c5ea.png')} 
+                  source={require('@/assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png')} 
                   style={styles.headerIcon}
                   resizeMode="contain"
                 />
