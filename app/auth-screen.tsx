@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -29,6 +30,8 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [biometricEnabled, setBiometricEnabledState] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const scanAnimation = useState(new Animated.Value(1))[0];
 
   useEffect(() => {
     checkBiometricAndAuthenticate();
@@ -46,37 +49,98 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
 
       // If biometric is enabled and available, try to authenticate automatically
       if (biometricEnabledStatus && available) {
+        // Small delay to let the UI render first
         setTimeout(() => {
-          handleBiometricAuth();
-        }, 500);
+          handleBiometricAuth(true);
+        }, 300);
       }
     } catch (error) {
       console.error('Error checking biometric:', error);
     }
   };
 
-  const handleBiometricAuth = async () => {
+  const startScanAnimation = () => {
+    setIsScanning(true);
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanAnimation, {
+          toValue: 0.6,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scanAnimation, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  const stopScanAnimation = () => {
+    setIsScanning(false);
+    scanAnimation.stopAnimation();
+    scanAnimation.setValue(1);
+  };
+
+  const handleBiometricAuth = async (isAutomatic = false) => {
     try {
+      // Show scanning animation
+      if (!isAutomatic) {
+        startScanAnimation();
+        // Add a short delay to show the scanning animation
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Authenticate to access Friend2Lend',
-        fallbackLabel: 'Use password',
+        fallbackLabel: 'Use Password',
         cancelLabel: 'Cancel',
-        disableDeviceFallback: false,
+        disableDeviceFallback: true, // This prevents immediate passcode prompt
       });
 
+      stopScanAnimation();
       console.log('Biometric authentication result:', result);
 
       if (result.success) {
         onAuthenticated();
       } else {
-        if (result.error === 'user_cancel' || result.error === 'app_cancel') {
+        if (result.error === 'user_cancel') {
           console.log('Biometric authentication cancelled by user');
+        } else if (result.error === 'user_fallback') {
+          // User chose to use password instead
+          console.log('User chose to use password fallback');
+        } else if (result.error === 'authentication_failed') {
+          // Biometric authentication failed, but don't show alert on automatic attempt
+          if (!isAutomatic) {
+            Alert.alert(
+              'Authentication Failed',
+              'Biometric authentication failed. Please try again or use your password.',
+              [{ text: 'OK' }]
+            );
+          }
         } else {
           console.log('Biometric authentication failed:', result.error);
+          // For other errors, show a message
+          if (!isAutomatic) {
+            Alert.alert(
+              'Authentication Error',
+              'Unable to authenticate with biometrics. Please use your password.',
+              [{ text: 'OK' }]
+            );
+          }
         }
       }
     } catch (error) {
+      stopScanAnimation();
       console.error('Biometric authentication error:', error);
+      if (!isAutomatic) {
+        Alert.alert(
+          'Error',
+          'An error occurred during biometric authentication. Please use your password.',
+          [{ text: 'OK' }]
+        );
+      }
     }
   };
 
@@ -135,40 +199,76 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
               Enter your password to continue
             </Text>
 
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <View style={[styles.inputWrapper, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-                <IconSymbol 
-                  ios_icon_name="lock.fill" 
-                  android_material_icon_name="lock" 
-                  size={20} 
-                  color={themeColors.textSecondary} 
-                />
-                <TextInput
-                  style={[styles.input, { color: themeColors.text }]}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  placeholder="Enter password"
-                  placeholderTextColor={themeColors.textSecondary}
-                  onSubmitEditing={handlePasswordAuth}
-                  onFocus={() => setIsPasswordFocused(true)}
-                  onBlur={() => setIsPasswordFocused(false)}
-                  autoFocus={false}
-                />
-              </View>
+            {/* Password Input - Only show when not focused on biometric */}
+            {!isPasswordFocused && (
+              <View style={styles.inputContainer}>
+                <View style={[styles.inputWrapper, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
+                  <IconSymbol 
+                    ios_icon_name="lock.fill" 
+                    android_material_icon_name="lock" 
+                    size={20} 
+                    color={themeColors.textSecondary} 
+                  />
+                  <TextInput
+                    style={[styles.input, { color: themeColors.text }]}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    placeholder="Enter password"
+                    placeholderTextColor={themeColors.textSecondary}
+                    onSubmitEditing={handlePasswordAuth}
+                    onFocus={() => setIsPasswordFocused(true)}
+                    onBlur={() => setIsPasswordFocused(false)}
+                    autoFocus={false}
+                  />
+                </View>
 
-              <Pressable
-                style={[styles.button, { backgroundColor: colors.primary, opacity: !password ? 0.5 : 1 }]}
-                onPress={handlePasswordAuth}
-                disabled={!password}
-              >
-                <Text style={styles.buttonText}>Unlock</Text>
-              </Pressable>
-            </View>
+                <Pressable
+                  style={[styles.button, { backgroundColor: colors.primary, opacity: !password ? 0.5 : 1 }]}
+                  onPress={handlePasswordAuth}
+                  disabled={!password}
+                >
+                  <Text style={styles.buttonText}>Unlock</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {/* Show password input when focused */}
+            {isPasswordFocused && (
+              <View style={styles.inputContainer}>
+                <View style={[styles.inputWrapper, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
+                  <IconSymbol 
+                    ios_icon_name="lock.fill" 
+                    android_material_icon_name="lock" 
+                    size={20} 
+                    color={themeColors.textSecondary} 
+                  />
+                  <TextInput
+                    style={[styles.input, { color: themeColors.text }]}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    placeholder="Enter password"
+                    placeholderTextColor={themeColors.textSecondary}
+                    onSubmitEditing={handlePasswordAuth}
+                    onFocus={() => setIsPasswordFocused(true)}
+                    onBlur={() => setIsPasswordFocused(false)}
+                    autoFocus={true}
+                  />
+                </View>
+
+                <Pressable
+                  style={[styles.button, { backgroundColor: colors.primary, opacity: !password ? 0.5 : 1 }]}
+                  onPress={handlePasswordAuth}
+                  disabled={!password}
+                >
+                  <Text style={styles.buttonText}>Unlock</Text>
+                </Pressable>
+              </View>
+            )}
 
             {/* Biometric Button */}
-            {biometricEnabled && biometricAvailable && (
+            {biometricEnabled && biometricAvailable && !isPasswordFocused && (
               <>
                 <View style={styles.biometricContainer}>
                   <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
@@ -178,16 +278,31 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
 
                 <Pressable
                   style={[styles.biometricButton, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
-                  onPress={handleBiometricAuth}
+                  onPress={() => handleBiometricAuth(false)}
                 >
-                  <IconSymbol 
-                    ios_icon_name="faceid" 
-                    android_material_icon_name="fingerprint" 
-                    size={32} 
-                    color={colors.primary} 
-                  />
+                  {isScanning ? (
+                    <Animated.View style={{ opacity: scanAnimation }}>
+                      <IconSymbol 
+                        ios_icon_name="faceid" 
+                        android_material_icon_name="fingerprint" 
+                        size={32} 
+                        color={colors.primary} 
+                      />
+                    </Animated.View>
+                  ) : (
+                    <IconSymbol 
+                      ios_icon_name="faceid" 
+                      android_material_icon_name="fingerprint" 
+                      size={32} 
+                      color={colors.primary} 
+                    />
+                  )}
                   <Text style={[styles.biometricText, { color: themeColors.text }]}>
-                    {Platform.OS === 'ios' ? 'Use Face ID / Touch ID' : 'Use Biometric'}
+                    {isScanning 
+                      ? 'Scanning...' 
+                      : Platform.OS === 'ios' 
+                        ? 'Use Face ID / Touch ID' 
+                        : 'Use Biometric'}
                   </Text>
                 </Pressable>
               </>
@@ -296,5 +411,6 @@ const styles = StyleSheet.create({
   biometricText: {
     fontSize: 16,
     fontWeight: '600',
+    textAlign: 'center',
   },
 });
