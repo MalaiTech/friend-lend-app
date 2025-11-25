@@ -135,6 +135,21 @@ export default function AddLoanScreen() {
     }
   };
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    console.log('Date picker event:', event.type, 'Selected date:', selectedDate);
+    
+    // On Android, hide the picker after selection
+    if (Platform.OS === 'android') {
+      setShowStartDatePicker(false);
+    }
+    
+    // Update the date if a valid date was selected
+    if (selectedDate) {
+      console.log('Setting start date to:', selectedDate.toISOString());
+      setStartDate(selectedDate);
+    }
+  };
+
   const handleSave = async () => {
     if (!borrowerName.trim()) {
       Alert.alert('Error', 'Please enter borrower name');
@@ -271,18 +286,18 @@ export default function AddLoanScreen() {
                 value={startDate}
                 mode="date"
                 display="inline"
-                onChange={(event, selectedDate) => {
-                  if (selectedDate) {
-                    setStartDate(selectedDate);
-                  }
-                }}
+                onChange={handleDateChange}
                 style={styles.iosDatePicker}
+                maximumDate={new Date()}
               />
             ) : (
               <>
                 <Pressable
                   style={[styles.dateButton, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
-                  onPress={() => setShowStartDatePicker(true)}
+                  onPress={() => {
+                    console.log('Opening date picker with date:', startDate.toISOString());
+                    setShowStartDatePicker(true);
+                  }}
                 >
                   <Text style={[styles.dateButtonText, { color: themeColors.text }]}>
                     {startDate.toLocaleDateString('en-US', {
@@ -298,12 +313,8 @@ export default function AddLoanScreen() {
                     value={startDate}
                     mode="date"
                     display="default"
-                    onChange={(event, selectedDate) => {
-                      setShowStartDatePicker(false);
-                      if (selectedDate) {
-                        setStartDate(selectedDate);
-                      }
-                    }}
+                    onChange={handleDateChange}
+                    maximumDate={new Date()}
                   />
                 )}
               </>
