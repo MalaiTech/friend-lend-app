@@ -7,7 +7,6 @@ const LOANS_KEY = '@friendlend_loans';
 const PAYMENTS_KEY = '@friendlend_payments';
 const SETTINGS_KEY = '@friendlend_settings';
 const PASSWORD_KEY = 'app_password';
-const BIOMETRIC_ENABLED_KEY = 'biometric_enabled';
 
 export async function saveLoans(loans: Loan[]): Promise<void> {
   try {
@@ -93,7 +92,7 @@ export async function getAllData(): Promise<{ loans: Loan[]; payments: Payment[]
   return { loans, payments };
 }
 
-// Security functions
+// Security functions - Password only
 export async function savePassword(password: string): Promise<void> {
   try {
     await SecureStore.setItemAsync(PASSWORD_KEY, password);
@@ -130,29 +129,6 @@ export async function hasPassword(): Promise<boolean> {
     return password !== null && password !== '';
   } catch (error) {
     console.error('Error checking password:', error);
-    return false;
-  }
-}
-
-export async function setBiometricEnabled(enabled: boolean): Promise<void> {
-  try {
-    await AsyncStorage.setItem(BIOMETRIC_ENABLED_KEY, JSON.stringify(enabled));
-    console.log('Biometric enabled status saved:', enabled);
-  } catch (error) {
-    console.error('Error saving biometric enabled status:', error);
-    throw error;
-  }
-}
-
-export async function isBiometricEnabled(): Promise<boolean> {
-  try {
-    const data = await AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY);
-    if (data) {
-      return JSON.parse(data);
-    }
-    return false; // Default is OFF
-  } catch (error) {
-    console.error('Error getting biometric enabled status:', error);
     return false;
   }
 }
