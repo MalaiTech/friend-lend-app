@@ -31,7 +31,7 @@ import {
   getInterestPaymentStatus,
   calculateMonthlyInterest,
 } from '@/utils/loanCalculations';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { copyImageToLocalStorage } from '@/utils/imageUtils';
 
 export default function LoanDetailScreen() {
@@ -263,26 +263,20 @@ export default function LoanDetailScreen() {
     setShowEditDatePicker(false);
   };
 
-  const handleEditDateChange = (event: any, selectedDate?: Date) => {
+  const handleEditDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     console.log('Edit date picker event:', event.type, 'Selected date:', selectedDate);
     
-    // On Android, the picker closes automatically after selection
     if (Platform.OS === 'android') {
+      // On Android, always hide the picker after any interaction
       setShowEditDatePicker(false);
-      
-      // Only update if user confirmed (not dismissed/cancelled)
-      if (event.type === 'set' && selectedDate) {
-        console.log('Android: User confirmed date selection, setting edit date to:', selectedDate.toISOString());
-        setEditDate(selectedDate);
-      } else if (event.type === 'dismissed') {
-        console.log('Android: User dismissed date picker, keeping current date');
-      }
-    } else {
-      // On iOS with inline picker, update immediately on any change
-      if (selectedDate) {
-        console.log('iOS: Setting edit date to:', selectedDate.toISOString());
-        setEditDate(selectedDate);
-      }
+    }
+    
+    // Update the date if a valid date was selected
+    // On iOS, this fires on every scroll/change
+    // On Android, this only fires when user confirms or dismisses
+    if (selectedDate) {
+      console.log('Setting edit date to:', selectedDate.toISOString());
+      setEditDate(selectedDate);
     }
   };
 
@@ -650,6 +644,7 @@ export default function LoanDetailScreen() {
                     onChange={handleEditDateChange}
                     style={styles.iosDatePicker}
                     maximumDate={new Date()}
+                    themeVariant="light"
                   />
                 ) : (
                   <>

@@ -13,7 +13,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { colors, commonStyles, buttonStyles, useThemeColors } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
@@ -47,26 +47,20 @@ export default function AddPaymentScreen() {
   const interestStatus = getInterestPaymentStatus(loan, getPaymentsForLoan(loanId));
   const monthlyInterest = calculateMonthlyInterest(loan.amount, loan.interestRate);
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
+  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     console.log('Date picker event:', event.type, 'Selected date:', selectedDate);
     
-    // On Android, the picker closes automatically after selection
     if (Platform.OS === 'android') {
+      // On Android, always hide the picker after any interaction
       setShowDatePicker(false);
-      
-      // Only update if user confirmed (not dismissed/cancelled)
-      if (event.type === 'set' && selectedDate) {
-        console.log('Android: User confirmed date selection, setting date to:', selectedDate.toISOString());
-        setDate(selectedDate);
-      } else if (event.type === 'dismissed') {
-        console.log('Android: User dismissed date picker, keeping current date');
-      }
-    } else {
-      // On iOS with inline picker, update immediately on any change
-      if (selectedDate) {
-        console.log('iOS: Setting date to:', selectedDate.toISOString());
-        setDate(selectedDate);
-      }
+    }
+    
+    // Update the date if a valid date was selected
+    // On iOS, this fires on every scroll/change
+    // On Android, this only fires when user confirms or dismisses
+    if (selectedDate) {
+      console.log('Setting date to:', selectedDate.toISOString());
+      setDate(selectedDate);
     }
   };
 
@@ -247,6 +241,7 @@ export default function AddPaymentScreen() {
                   onChange={handleDateChange}
                   style={styles.iosDatePicker}
                   maximumDate={new Date()}
+                  themeVariant="light"
                 />
               ) : (
                 <>
