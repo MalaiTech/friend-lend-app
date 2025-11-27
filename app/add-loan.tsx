@@ -233,8 +233,8 @@ export default function AddLoanScreen() {
                 <IconSymbol 
                   ios_icon_name="pencil.circle.fill" 
                   android_material_icon_name="edit" 
-                  size={36} 
-                  color={colors.primary} 
+                  size={32} 
+                  color="#000000" 
                 />
               </View>
             </Pressable>
@@ -404,15 +404,8 @@ const styles = StyleSheet.create({
   },
   editIconContainer: {
     position: 'absolute',
-    bottom: -2,
-    right: -2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 4,
-    borderWidth: 3,
-    borderColor: colors.primary,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.2)',
-    elevation: 5,
+    bottom: 0,
+    right: 0,
   },
   photoHint: {
     fontSize: 13,
