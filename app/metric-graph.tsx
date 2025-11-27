@@ -149,7 +149,11 @@ export default function MetricGraphScreen() {
       <Stack.Screen
         options={{
           title: metricTitle,
-          headerBackTitle: 'Back',
+          headerLeft: () => (
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </Pressable>
+          ),
         }}
       />
       <View style={commonStyles.container}>
@@ -249,6 +253,15 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+  },
+  backButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  backButtonText: {
+    fontSize: 17,
+    color: colors.primary,
+    fontWeight: '600',
   },
   periodSelector: {
     flexDirection: 'row',

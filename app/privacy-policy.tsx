@@ -16,7 +16,11 @@ export default function PrivacyPolicyScreen() {
       <Stack.Screen
         options={{
           title: 'Privacy Policy',
-          headerBackTitle: 'Back',
+          headerLeft: () => (
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </Pressable>
+          ),
         }}
       />
       <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
@@ -277,6 +281,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 100,
+  },
+  backButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  backButtonText: {
+    fontSize: 17,
+    color: colors.primary,
+    fontWeight: '600',
   },
   content: {
     flex: 1,

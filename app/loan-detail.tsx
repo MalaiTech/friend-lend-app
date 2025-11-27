@@ -268,7 +268,6 @@ export default function LoanDetailScreen() {
       <Stack.Screen
         options={{
           title: 'Loan Details',
-          headerBackTitle: 'Back',
           headerLeft: () => (
             <Pressable onPress={() => router.back()} style={styles.backButton}>
               <Text style={styles.backButtonText}>Back</Text>
@@ -485,9 +484,9 @@ export default function LoanDetailScreen() {
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                           >
                             <IconSymbol 
-                              ios_icon_name="trash.circle.fill" 
+                              ios_icon_name="trash.fill" 
                               android_material_icon_name="delete" 
-                              size={28} 
+                              size={24} 
                               color={colors.error} 
                             />
                           </Pressable>
@@ -518,9 +517,9 @@ export default function LoanDetailScreen() {
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                           >
                             <IconSymbol 
-                              ios_icon_name="trash.circle.fill" 
+                              ios_icon_name="trash.fill" 
                               android_material_icon_name="delete" 
-                              size={28} 
+                              size={24} 
                               color={colors.error} 
                             />
                           </Pressable>
