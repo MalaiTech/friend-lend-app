@@ -400,6 +400,7 @@ const styles = StyleSheet.create({
   paymentTypeText: {
     fontSize: 15,
     fontWeight: '600',
+    textAlign: 'center',
   },
   paymentTypeTextActive: {
     color: colors.primary,

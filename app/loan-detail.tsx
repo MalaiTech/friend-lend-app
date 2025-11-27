@@ -267,15 +267,17 @@ export default function LoanDetailScreen() {
     <>
       <Stack.Screen
         options={{
-          title: loan.borrowerName,
+          title: 'Loan Details',
           headerBackTitle: 'Back',
-          headerRight: () => (
-            <Pressable onPress={handleDeleteLoan} style={{ padding: 8 }}>
+          headerLeft: () => (
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
               <IconSymbol 
-                name="trash" 
-                size={22} 
-                color={colors.error} 
+                ios_icon_name="chevron.left" 
+                android_material_icon_name="arrow_back" 
+                size={24} 
+                color={colors.primary} 
               />
+              <Text style={styles.backButtonText}>Back</Text>
             </Pressable>
           ),
         }}
@@ -293,7 +295,8 @@ export default function LoanDetailScreen() {
               ) : (
                 <View style={[styles.photoPlaceholder, { backgroundColor: colors.border }]}>
                   <IconSymbol 
-                    name="person.fill" 
+                    ios_icon_name="person.fill" 
+                    android_material_icon_name="person" 
                     size={40} 
                     color={colors.textSecondary} 
                   />
@@ -301,7 +304,8 @@ export default function LoanDetailScreen() {
               )}
               <View style={[styles.editIconContainer, { backgroundColor: colors.card }]}>
                 <IconSymbol 
-                  name="pencil.circle.fill" 
+                  ios_icon_name="pencil.circle.fill" 
+                  android_material_icon_name="edit" 
                   size={28} 
                   color={colors.primary} 
                 />
@@ -310,7 +314,8 @@ export default function LoanDetailScreen() {
             <Pressable onPress={handleEditBorrower} style={styles.nameEditButton}>
               <Text style={[styles.borrowerNameLarge, { color: colors.text }]}>{loan.borrowerName}</Text>
               <IconSymbol 
-                name="pencil" 
+                ios_icon_name="pencil" 
+                android_material_icon_name="edit" 
                 size={20} 
                 color={colors.primary} 
               />
@@ -351,7 +356,8 @@ export default function LoanDetailScreen() {
             <View style={[commonStyles.card, styles.warningCard]}>
               <View style={styles.warningHeader}>
                 <IconSymbol 
-                  name="exclamationmark.triangle.fill" 
+                  ios_icon_name="exclamationmark.triangle.fill" 
+                  android_material_icon_name="warning" 
                   size={28} 
                   color={colors.error} 
                 />
@@ -485,7 +491,8 @@ export default function LoanDetailScreen() {
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                           >
                             <IconSymbol 
-                              name="trash.circle.fill" 
+                              ios_icon_name="trash.circle.fill" 
+                              android_material_icon_name="delete" 
                               size={28} 
                               color={colors.error} 
                             />
@@ -517,7 +524,8 @@ export default function LoanDetailScreen() {
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                           >
                             <IconSymbol 
-                              name="trash.circle.fill" 
+                              ios_icon_name="trash.circle.fill" 
+                              android_material_icon_name="delete" 
                               size={28} 
                               color={colors.error} 
                             />
@@ -530,6 +538,11 @@ export default function LoanDetailScreen() {
               </>
             )}
           </View>
+
+          {/* Delete Loan Button */}
+          <Pressable style={styles.deleteButton} onPress={handleDeleteLoan}>
+            <Text style={styles.deleteButtonText}>Delete Loan</Text>
+          </Pressable>
 
           <View style={{ height: 40 }} />
         </ScrollView>
@@ -559,7 +572,8 @@ export default function LoanDetailScreen() {
 
                 <Pressable style={[styles.contactsButton, { borderColor: colors.border, backgroundColor: colors.background }]} onPress={handleSelectFromContacts}>
                   <IconSymbol 
-                    name="person.crop.circle.badge.plus" 
+                    ios_icon_name="person.crop.circle.badge.plus" 
+                    android_material_icon_name="person_add" 
                     size={24} 
                     color={colors.primary} 
                   />
@@ -597,6 +611,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginTop: 40,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: colors.primary,
+    fontWeight: '600',
   },
   borrowerCard: {
     alignItems: 'center',
@@ -764,17 +788,16 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   deleteButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.error,
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
   },
   deleteButtonText: {
-    color: colors.error,
+    color: colors.card,
     fontSize: 16,
     fontWeight: '600',
   },
