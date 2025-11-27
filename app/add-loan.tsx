@@ -222,8 +222,7 @@ export default function AddLoanScreen() {
               ) : (
                 <View style={[styles.photoPlaceholder, { backgroundColor: colors.border }]}>
                   <IconSymbol 
-                    ios_icon_name="person.fill" 
-                    android_material_icon_name="person" 
+                    name="person.fill"
                     size={40} 
                     color={colors.textSecondary} 
                   />
@@ -231,10 +230,9 @@ export default function AddLoanScreen() {
               )}
               <View style={styles.editIconContainer}>
                 <IconSymbol 
-                  ios_icon_name="pencil.circle.fill" 
-                  android_material_icon_name="edit" 
+                  name="pencil.circle.fill"
                   size={32} 
-                  color="#000000" 
+                  color="#007AFF"
                 />
               </View>
             </Pressable>
@@ -254,8 +252,7 @@ export default function AddLoanScreen() {
               />
               <Pressable style={[styles.contactButton, { borderColor: colors.border, backgroundColor: colors.card }]} onPress={handleSelectFromContacts}>
                 <IconSymbol 
-                  ios_icon_name="person.crop.circle.badge.plus" 
-                  android_material_icon_name="person_add" 
+                  name="person.crop.circle.badge.plus"
                   size={28} 
                   color={colors.primary} 
                 />
@@ -333,8 +330,7 @@ export default function AddLoanScreen() {
                     })}
                   </Text>
                   <IconSymbol 
-                    ios_icon_name="calendar" 
-                    android_material_icon_name="calendar_today" 
+                    name="calendar"
                     size={20} 
                     color={colors.primary} 
                   />

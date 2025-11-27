@@ -288,8 +288,7 @@ export default function LoanDetailScreen() {
               ) : (
                 <View style={[styles.photoPlaceholder, { backgroundColor: colors.border }]}>
                   <IconSymbol 
-                    ios_icon_name="person.fill" 
-                    android_material_icon_name="person" 
+                    name="person.fill"
                     size={40} 
                     color={colors.textSecondary} 
                   />
@@ -297,10 +296,9 @@ export default function LoanDetailScreen() {
               )}
               <View style={styles.editIconContainer}>
                 <IconSymbol 
-                  ios_icon_name="pencil.circle.fill" 
-                  android_material_icon_name="edit" 
+                  name="pencil.circle.fill"
                   size={28} 
-                  color="#000000" 
+                  color="#007AFF"
                 />
               </View>
             </Pressable>
@@ -308,10 +306,9 @@ export default function LoanDetailScreen() {
               <Text style={[styles.borrowerNameLarge, { color: colors.text }]}>{loan.borrowerName}</Text>
               <View style={styles.nameEditIconContainer}>
                 <IconSymbol 
-                  ios_icon_name="pencil" 
-                  android_material_icon_name="edit" 
+                  name="pencil"
                   size={20} 
-                  color="#000000" 
+                  color="#000000"
                 />
               </View>
             </Pressable>
@@ -351,8 +348,7 @@ export default function LoanDetailScreen() {
             <View style={[commonStyles.card, styles.warningCard]}>
               <View style={styles.warningHeader}>
                 <IconSymbol 
-                  ios_icon_name="exclamationmark.triangle.fill" 
-                  android_material_icon_name="warning" 
+                  name="exclamationmark.triangle.fill"
                   size={28} 
                   color={colors.error} 
                 />
@@ -485,10 +481,9 @@ export default function LoanDetailScreen() {
                           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
                           <IconSymbol 
-                            ios_icon_name="trash.fill" 
-                            android_material_icon_name="delete" 
+                            name="trash.fill"
                             size={24} 
-                            color="#F44336" 
+                            color="#F44336"
                           />
                         </Pressable>
                       </View>
@@ -516,10 +511,9 @@ export default function LoanDetailScreen() {
                           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
                           <IconSymbol 
-                            ios_icon_name="trash.fill" 
-                            android_material_icon_name="delete" 
+                            name="trash.fill"
                             size={24} 
-                            color="#F44336" 
+                            color="#F44336"
                           />
                         </Pressable>
                       </View>
@@ -563,8 +557,7 @@ export default function LoanDetailScreen() {
 
                 <Pressable style={[styles.contactsButton, { borderColor: colors.border, backgroundColor: colors.background }]} onPress={handleSelectFromContacts}>
                   <IconSymbol 
-                    ios_icon_name="person.crop.circle.badge.plus" 
-                    android_material_icon_name="person_add" 
+                    name="person.crop.circle.badge.plus"
                     size={24} 
                     color={colors.primary} 
                   />

@@ -1,3 +1,4 @@
+
 // This file is a fallback for using MaterialIcons on Android and web.
 
 import React from "react";
@@ -60,6 +61,7 @@ const MAPPING = {
   "pencil": "edit",
   "pencil.and.list.clipboard": "edit-note",
   "square.and.pencil": "edit",
+  "pencil.circle.fill": "edit",
   "doc.text.fill": "description",
   "doc.text": "description",
   "folder.fill": "folder",
@@ -143,6 +145,7 @@ const MAPPING = {
   "person.circle": "account-circle",
   "person.crop.circle.fill": "account-circle",
   "person.crop.circle": "account-circle",
+  "person.crop.circle.badge.plus": "person-add",
 
   // Sharing & Export
   "square.and.arrow.up": "share",
@@ -177,21 +180,36 @@ export type IconSymbolName = keyof typeof MAPPING;
  */
 export function IconSymbol({
   name,
+  ios_icon_name,
+  android_material_icon_name,
   size = 24,
   color,
   style,
 }: {
-  name: IconSymbolName;
+  name?: IconSymbolName;
+  ios_icon_name?: IconSymbolName;
+  android_material_icon_name?: React.ComponentProps<typeof MaterialIcons>["name"];
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<ViewStyle>;
   weight?: SymbolWeight;
 }) {
+  // Support both name and ios_icon_name for backwards compatibility
+  const iconName = name || ios_icon_name;
+  
+  // Use android_material_icon_name if provided, otherwise map from SF Symbol name
+  const materialIconName = android_material_icon_name || (iconName ? MAPPING[iconName] : undefined);
+  
+  if (!materialIconName) {
+    console.warn('IconSymbol: No valid icon name provided or mapping not found for:', iconName);
+    return null;
+  }
+
   return (
     <MaterialIcons
       color={color}
       size={size}
-      name={MAPPING[name]}
+      name={materialIconName}
       style={style as StyleProp<TextStyle>}
     />
   );
