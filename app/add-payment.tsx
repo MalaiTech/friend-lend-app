@@ -102,12 +102,6 @@ export default function AddPaymentScreen() {
           presentation: 'modal',
           headerLeft: () => (
             <Pressable onPress={() => router.back()} style={styles.backButton}>
-              <IconSymbol 
-                ios_icon_name="chevron.left" 
-                android_material_icon_name="arrow_back" 
-                size={24} 
-                color={colors.primary} 
-              />
               <Text style={styles.backButtonText}>Back</Text>
             </Pressable>
           ),
@@ -324,12 +318,11 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: 17,
     color: colors.primary,
     fontWeight: '600',
   },
