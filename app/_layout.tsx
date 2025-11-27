@@ -23,12 +23,13 @@ SplashScreen.preventAutoHideAsync();
 // Force light theme - custom theme based on DefaultTheme
 const ForcedLightTheme = {
   ...DefaultTheme,
+  dark: false,
   colors: {
     ...DefaultTheme.colors,
     primary: colors.primary,
     background: colors.background,
     card: colors.card,
-    text: colors.text,
+    text: colors.primary, // Use primary color for all header elements
     border: colors.border,
     notification: colors.accent,
   },
@@ -109,7 +110,10 @@ export default function RootLayout() {
             headerStyle: {
               backgroundColor: colors.background,
             },
-            headerTintColor: colors.text,
+            headerTintColor: colors.primary,
+            headerTitleStyle: {
+              color: colors.text,
+            },
             contentStyle: {
               backgroundColor: colors.background,
             },
@@ -124,7 +128,10 @@ export default function RootLayout() {
               headerStyle: {
                 backgroundColor: colors.background,
               },
-              headerTintColor: colors.text,
+              headerTintColor: colors.primary,
+              headerTitleStyle: {
+                color: colors.text,
+              },
               contentStyle: {
                 backgroundColor: colors.background,
               },
@@ -137,7 +144,10 @@ export default function RootLayout() {
               headerStyle: {
                 backgroundColor: colors.background,
               },
-              headerTintColor: colors.text,
+              headerTintColor: colors.primary,
+              headerTitleStyle: {
+                color: colors.text,
+              },
               contentStyle: {
                 backgroundColor: colors.background,
               },
@@ -151,7 +161,10 @@ export default function RootLayout() {
               headerStyle: {
                 backgroundColor: colors.background,
               },
-              headerTintColor: colors.text,
+              headerTintColor: colors.primary,
+              headerTitleStyle: {
+                color: colors.text,
+              },
               contentStyle: {
                 backgroundColor: colors.background,
               },
@@ -174,7 +187,10 @@ export default function RootLayout() {
               headerStyle: {
                 backgroundColor: colors.background,
               },
-              headerTintColor: colors.text,
+              headerTintColor: colors.primary,
+              headerTitleStyle: {
+                color: colors.text,
+              },
               contentStyle: {
                 backgroundColor: colors.background,
               },
@@ -189,7 +205,10 @@ export default function RootLayout() {
               headerStyle: {
                 backgroundColor: colors.background,
               },
-              headerTintColor: colors.text,
+              headerTintColor: colors.primary,
+              headerTitleStyle: {
+                color: colors.text,
+              },
               contentStyle: {
                 backgroundColor: colors.background,
               },
@@ -204,7 +223,10 @@ export default function RootLayout() {
               headerStyle: {
                 backgroundColor: colors.background,
               },
-              headerTintColor: colors.text,
+              headerTintColor: colors.primary,
+              headerTitleStyle: {
+                color: colors.text,
+              },
               contentStyle: {
                 backgroundColor: colors.background,
               },
