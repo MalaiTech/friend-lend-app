@@ -13,10 +13,26 @@ import React, { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import AuthScreen from './auth-screen';
 import { hasPassword } from '@/utils/storage';
+import { colors } from '@/styles/commonStyles';
 
 SplashScreen.preventAutoHideAsync();
+
+// Force light theme - custom theme based on DefaultTheme
+const ForcedLightTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colors.primary,
+    background: colors.background,
+    card: colors.card,
+    text: colors.text,
+    border: colors.border,
+    notification: colors.accent,
+  },
+};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -26,6 +42,11 @@ export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    // Force light background color at system level
+    SystemUI.setBackgroundColorAsync(colors.background);
+  }, []);
 
   useEffect(() => {
     if (loaded) {
@@ -70,10 +91,10 @@ export default function RootLayout() {
   if (needsAuth && !isAuthenticated) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <SystemBars style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <ThemeProvider value={ForcedLightTheme}>
+          <SystemBars style="dark" />
           <AuthScreen onAuthenticated={handleAuthenticated} />
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
         </ThemeProvider>
       </GestureHandlerRootView>
     );
@@ -81,21 +102,45 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <SystemBars style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Stack>
+      <ThemeProvider value={ForcedLightTheme}>
+        <SystemBars style="dark" />
+        <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.text,
+            contentStyle: {
+              backgroundColor: colors.background,
+            },
+          }}
+        >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="add-loan"
             options={{
               presentation: 'modal',
               headerShown: true,
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.text,
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
             }}
           />
           <Stack.Screen
             name="loan-detail"
             options={{
               headerShown: true,
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.text,
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
             }}
           />
           <Stack.Screen
@@ -103,6 +148,13 @@ export default function RootLayout() {
             options={{
               presentation: 'modal',
               headerShown: true,
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.text,
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
             }}
           />
           <Stack.Screen
@@ -110,12 +162,22 @@ export default function RootLayout() {
             options={{
               presentation: 'modal',
               headerShown: false,
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
             }}
           />
           <Stack.Screen
             name="metric-graph"
             options={{
               headerShown: true,
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.text,
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
             }}
           />
           <Stack.Screen
@@ -124,10 +186,32 @@ export default function RootLayout() {
               presentation: 'modal',
               headerShown: true,
               title: 'Security',
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.text,
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
+            }}
+          />
+          <Stack.Screen
+            name="privacy-policy"
+            options={{
+              presentation: 'modal',
+              headerShown: true,
+              title: 'Privacy Policy',
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.text,
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
             }}
           />
         </Stack>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
       </ThemeProvider>
     </GestureHandlerRootView>
   );

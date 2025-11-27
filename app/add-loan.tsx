@@ -10,13 +10,12 @@ import {
   Alert,
   Platform,
   Image,
-  useColorScheme,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Contacts from 'expo-contacts';
 import * as ImagePicker from 'expo-image-picker';
-import { colors, commonStyles, buttonStyles, useThemeColors } from '@/styles/commonStyles';
+import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -26,7 +25,6 @@ export default function AddLoanScreen() {
   const router = useRouter();
   const { addLoan } = useLoans();
   const { settings } = useSettings();
-  const themeColors = useThemeColors();
 
   const [borrowerName, setBorrowerName] = useState('');
   const [borrowerPhoto, setBorrowerPhoto] = useState<string | undefined>(undefined);
@@ -210,7 +208,7 @@ export default function AddLoanScreen() {
           ),
         }}
       />
-      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
+      <View style={[commonStyles.container, { backgroundColor: colors.background }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -222,29 +220,29 @@ export default function AddLoanScreen() {
               {borrowerPhoto ? (
                 <Image source={{ uri: borrowerPhoto }} style={styles.photo} />
               ) : (
-                <View style={[styles.photoPlaceholder, { backgroundColor: themeColors.border }]}>
-                  <IconSymbol name="person.fill" size={40} color={themeColors.textSecondary} />
+                <View style={[styles.photoPlaceholder, { backgroundColor: colors.border }]}>
+                  <IconSymbol name="person.fill" size={40} color={colors.textSecondary} />
                 </View>
               )}
-              <View style={[styles.editIconContainer, { backgroundColor: themeColors.card }]}>
+              <View style={[styles.editIconContainer, { backgroundColor: colors.card }]}>
                 <IconSymbol name="pencil.circle.fill" size={32} color={colors.primary} />
               </View>
             </Pressable>
-            <Text style={[styles.photoHint, { color: themeColors.textSecondary }]}>Tap to add photo</Text>
+            <Text style={[styles.photoHint, { color: colors.textSecondary }]}>Tap to add photo</Text>
           </View>
 
           {/* Borrower Name */}
           <View style={styles.inputGroup}>
-            <Text style={[commonStyles.label, { color: themeColors.text }]}>Borrower Name</Text>
+            <Text style={[commonStyles.label, { color: colors.text }]}>Borrower Name</Text>
             <View style={styles.nameInputContainer}>
               <TextInput
-                style={[commonStyles.input, styles.nameInput, { backgroundColor: themeColors.card, borderColor: themeColors.border, color: themeColors.text }]}
+                style={[commonStyles.input, styles.nameInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
                 value={borrowerName}
                 onChangeText={setBorrowerName}
                 placeholder="Enter borrower name"
-                placeholderTextColor={themeColors.textSecondary}
+                placeholderTextColor={colors.textSecondary}
               />
-              <Pressable style={[styles.contactButton, { borderColor: themeColors.border, backgroundColor: themeColors.card }]} onPress={handleSelectFromContacts}>
+              <Pressable style={[styles.contactButton, { borderColor: colors.border, backgroundColor: colors.card }]} onPress={handleSelectFromContacts}>
                 <IconSymbol name="person.crop.circle.badge.plus" size={28} color={colors.primary} />
               </Pressable>
             </View>
@@ -252,9 +250,9 @@ export default function AddLoanScreen() {
 
           {/* Amount */}
           <View style={styles.inputGroup}>
-            <Text style={[commonStyles.label, { color: themeColors.text }]}>Loan Amount ({settings.currencySymbol})</Text>
+            <Text style={[commonStyles.label, { color: colors.text }]}>Loan Amount ({settings.currencySymbol})</Text>
             <TextInput
-              style={[commonStyles.input, { backgroundColor: themeColors.card, borderColor: themeColors.border, color: themeColors.text }]}
+              style={[commonStyles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
               value={amount}
               onChangeText={(text) => {
                 // Only allow whole numbers
@@ -262,16 +260,16 @@ export default function AddLoanScreen() {
                 setAmount(cleaned);
               }}
               placeholder="0"
-              placeholderTextColor={themeColors.textSecondary}
+              placeholderTextColor={colors.textSecondary}
               keyboardType="number-pad"
             />
           </View>
 
           {/* Interest Rate */}
           <View style={styles.inputGroup}>
-            <Text style={[commonStyles.label, { color: themeColors.text }]}>Monthly Interest Rate (%)</Text>
+            <Text style={[commonStyles.label, { color: colors.text }]}>Monthly Interest Rate (%)</Text>
             <TextInput
-              style={[commonStyles.input, { backgroundColor: themeColors.card, borderColor: themeColors.border, color: themeColors.text }]}
+              style={[commonStyles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
               value={interestRate}
               onChangeText={(text) => {
                 // Only allow whole numbers
@@ -279,36 +277,40 @@ export default function AddLoanScreen() {
                 setInterestRate(cleaned);
               }}
               placeholder="0"
-              placeholderTextColor={themeColors.textSecondary}
+              placeholderTextColor={colors.textSecondary}
               keyboardType="number-pad"
             />
-            <Text style={[styles.helperText, { color: themeColors.textSecondary }]}>
+            <Text style={[styles.helperText, { color: colors.textSecondary }]}>
               This is the monthly interest rate to be paid each month
             </Text>
           </View>
 
           {/* Start Date */}
           <View style={styles.inputGroup}>
-            <Text style={[commonStyles.label, { color: themeColors.text }]}>Start Date</Text>
+            <Text style={[commonStyles.label, { color: colors.text }]}>Start Date</Text>
             {Platform.OS === 'ios' ? (
-              <DateTimePicker
-                value={startDate}
-                mode="date"
-                display="inline"
-                onChange={handleDateChange}
-                style={styles.iosDatePicker}
-                maximumDate={new Date()}
-              />
+              <View style={[styles.datePickerContainer, { backgroundColor: colors.card, borderRadius: 12, padding: 8 }]}>
+                <DateTimePicker
+                  value={startDate}
+                  mode="date"
+                  display="inline"
+                  onChange={handleDateChange}
+                  style={styles.iosDatePicker}
+                  maximumDate={new Date()}
+                  themeVariant="light"
+                  textColor={colors.text}
+                />
+              </View>
             ) : (
               <>
                 <Pressable
-                  style={[styles.dateButton, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+                  style={[styles.dateButton, { backgroundColor: colors.card, borderColor: colors.border }]}
                   onPress={() => {
                     console.log('Opening date picker with date:', startDate.toISOString());
                     setShowStartDatePicker(true);
                   }}
                 >
-                  <Text style={[styles.dateButtonText, { color: themeColors.text }]}>
+                  <Text style={[styles.dateButtonText, { color: colors.text }]}>
                     {startDate.toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
@@ -332,13 +334,13 @@ export default function AddLoanScreen() {
 
           {/* Notes */}
           <View style={styles.inputGroup}>
-            <Text style={[commonStyles.label, { color: themeColors.text }]}>Notes (Optional)</Text>
+            <Text style={[commonStyles.label, { color: colors.text }]}>Notes (Optional)</Text>
             <TextInput
-              style={[commonStyles.input, styles.notesInput, { backgroundColor: themeColors.card, borderColor: themeColors.border, color: themeColors.text }]}
+              style={[commonStyles.input, styles.notesInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Add any additional notes..."
-              placeholderTextColor={themeColors.textSecondary}
+              placeholderTextColor={colors.textSecondary}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -426,6 +428,9 @@ const styles = StyleSheet.create({
   },
   dateButtonText: {
     fontSize: 16,
+  },
+  datePickerContainer: {
+    width: '100%',
   },
   iosDatePicker: {
     width: '100%',

@@ -239,7 +239,7 @@ export default function AddPaymentScreen() {
             <View style={styles.inputGroup}>
               <Text style={[commonStyles.label, { color: colors.text }]}>Payment Date</Text>
               {Platform.OS === 'ios' ? (
-                <View style={styles.datePickerWrapper}>
+                <View style={[styles.datePickerWrapper, { backgroundColor: colors.card, borderRadius: 12, padding: 8 }]}>
                   <DateTimePicker
                     value={date}
                     mode="date"
@@ -247,6 +247,8 @@ export default function AddPaymentScreen() {
                     onChange={handleDateChange}
                     style={styles.iosDatePicker}
                     maximumDate={new Date()}
+                    themeVariant="light"
+                    textColor={colors.text}
                   />
                 </View>
               ) : (

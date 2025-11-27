@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, commonStyles, useThemeColors } from '@/styles/commonStyles';
+import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import {
   savePassword,
@@ -22,7 +22,6 @@ import {
 
 export default function SecuritySettingsScreen() {
   const router = useRouter();
-  const themeColors = useThemeColors();
   const [passwordExists, setPasswordExists] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -146,9 +145,9 @@ export default function SecuritySettingsScreen() {
             headerBackTitle: 'Back',
           }}
         />
-        <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
-          <View style={[commonStyles.container, { backgroundColor: themeColors.background, justifyContent: 'center', alignItems: 'center' }]}>
-            <Text style={{ color: themeColors.text }}>Loading...</Text>
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
+          <View style={[commonStyles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ color: colors.text }}>Loading...</Text>
           </View>
         </SafeAreaView>
       </>
@@ -163,19 +162,19 @@ export default function SecuritySettingsScreen() {
           headerBackTitle: 'Back',
         }}
       />
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
-        <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
+        <View style={[commonStyles.container, { backgroundColor: colors.background }]}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
             {/* Password Section */}
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Password Protection</Text>
-              <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Password Protection</Text>
+              <View style={[commonStyles.card, { backgroundColor: colors.card }]}>
                 {!passwordExists ? (
                   <>
-                    <Text style={[styles.description, { color: themeColors.textSecondary }]}>
+                    <Text style={[styles.description, { color: colors.textSecondary }]}>
                       Set a password to secure your app. You&apos;ll be asked to enter this password when opening Friend2Lend.
                     </Text>
                     <Pressable
@@ -189,24 +188,24 @@ export default function SecuritySettingsScreen() {
 
                     {showPasswordSection && (
                       <View style={styles.passwordForm}>
-                        <Text style={[styles.label, { color: themeColors.text }]}>New Password</Text>
+                        <Text style={[styles.label, { color: colors.text }]}>New Password</Text>
                         <TextInput
-                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          style={[commonStyles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                           value={newPassword}
                           onChangeText={setNewPassword}
                           secureTextEntry
                           placeholder="Enter new password"
-                          placeholderTextColor={themeColors.textSecondary}
+                          placeholderTextColor={colors.textSecondary}
                         />
 
-                        <Text style={[styles.label, { color: themeColors.text }]}>Confirm Password</Text>
+                        <Text style={[styles.label, { color: colors.text }]}>Confirm Password</Text>
                         <TextInput
-                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          style={[commonStyles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                           value={confirmPassword}
                           onChangeText={setConfirmPassword}
                           secureTextEntry
                           placeholder="Confirm new password"
-                          placeholderTextColor={themeColors.textSecondary}
+                          placeholderTextColor={colors.textSecondary}
                         />
 
                         <Pressable
@@ -228,7 +227,7 @@ export default function SecuritySettingsScreen() {
                           size={24} 
                           color={colors.secondary} 
                         />
-                        <Text style={[styles.statusText, { color: themeColors.text }]}>Password is set</Text>
+                        <Text style={[styles.statusText, { color: colors.text }]}>Password is set</Text>
                       </View>
                       <IconSymbol 
                         ios_icon_name="checkmark.circle.fill" 
@@ -258,34 +257,34 @@ export default function SecuritySettingsScreen() {
 
                     {showPasswordSection && (
                       <View style={styles.passwordForm}>
-                        <Text style={[styles.label, { color: themeColors.text }]}>Current Password</Text>
+                        <Text style={[styles.label, { color: colors.text }]}>Current Password</Text>
                         <TextInput
-                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          style={[commonStyles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                           value={currentPassword}
                           onChangeText={setCurrentPassword}
                           secureTextEntry
                           placeholder="Enter current password"
-                          placeholderTextColor={themeColors.textSecondary}
+                          placeholderTextColor={colors.textSecondary}
                         />
 
-                        <Text style={[styles.label, { color: themeColors.text }]}>New Password</Text>
+                        <Text style={[styles.label, { color: colors.text }]}>New Password</Text>
                         <TextInput
-                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          style={[commonStyles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                           value={newPassword}
                           onChangeText={setNewPassword}
                           secureTextEntry
                           placeholder="Enter new password"
-                          placeholderTextColor={themeColors.textSecondary}
+                          placeholderTextColor={colors.textSecondary}
                         />
 
-                        <Text style={[styles.label, { color: themeColors.text }]}>Confirm New Password</Text>
+                        <Text style={[styles.label, { color: colors.text }]}>Confirm New Password</Text>
                         <TextInput
-                          style={[commonStyles.input, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                          style={[commonStyles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                           value={confirmPassword}
                           onChangeText={setConfirmPassword}
                           secureTextEntry
                           placeholder="Confirm new password"
-                          placeholderTextColor={themeColors.textSecondary}
+                          placeholderTextColor={colors.textSecondary}
                         />
 
                         <Pressable
@@ -302,7 +301,7 @@ export default function SecuritySettingsScreen() {
             </View>
 
             {/* Info Section */}
-            <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+            <View style={[commonStyles.card, { backgroundColor: colors.card }]}>
               <View style={styles.infoRow}>
                 <IconSymbol 
                   ios_icon_name="info.circle" 
@@ -310,7 +309,7 @@ export default function SecuritySettingsScreen() {
                   size={20} 
                   color={colors.primary} 
                 />
-                <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
+                <Text style={[styles.infoText, { color: colors.textSecondary }]}>
                   Your password is stored securely on your device using the same encryption as other passwords on your phone.
                 </Text>
               </View>

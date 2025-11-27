@@ -60,6 +60,7 @@ export default function CurrencySelectorScreen() {
       <Pressable
         style={[
           styles.currencyItem, 
+          { backgroundColor: colors.card, borderColor: colors.border },
           isSelected && styles.currencyItemSelected,
           isSelecting && styles.currencyItemDisabled
         ]}
@@ -67,10 +68,10 @@ export default function CurrencySelectorScreen() {
         disabled={isSelecting}
       >
         <View style={styles.currencyInfo}>
-          <Text style={styles.currencySymbol}>{item.symbol}</Text>
+          <Text style={[styles.currencySymbol, { color: colors.text }]}>{item.symbol}</Text>
           <View style={styles.currencyDetails}>
-            <Text style={styles.currencyCode}>{item.code}</Text>
-            <Text style={styles.currencyName}>{item.name}</Text>
+            <Text style={[styles.currencyCode, { color: colors.text }]}>{item.code}</Text>
+            <Text style={[styles.currencyName, { color: colors.textSecondary }]}>{item.name}</Text>
           </View>
         </View>
         {isSelected && (
@@ -95,12 +96,12 @@ export default function CurrencySelectorScreen() {
           ),
         }}
       />
-      <View style={commonStyles.container}>
+      <View style={[commonStyles.container, { backgroundColor: colors.background }]}>
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
+        <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <IconSymbol name="magnifyingglass" size={20} color={colors.textSecondary} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search currencies..."
@@ -133,9 +134,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -147,7 +146,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: colors.text,
   },
   listContent: {
     padding: 16,
@@ -156,9 +154,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -178,7 +174,6 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 28,
     fontWeight: '700',
-    color: colors.text,
     width: 50,
     textAlign: 'center',
   },
@@ -189,12 +184,10 @@ const styles = StyleSheet.create({
   currencyCode: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 2,
   },
   currencyName: {
     fontSize: 14,
-    color: colors.textSecondary,
   },
   cancelButton: {
     fontSize: 16,
