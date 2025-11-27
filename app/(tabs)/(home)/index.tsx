@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform, Pressable, Image, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform, Pressable, Image } from 'react-native';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
-import { colors, commonStyles, useThemeColors } from '@/styles/commonStyles';
+import { colors, commonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
 import SummaryCard from '@/components/SummaryCard';
@@ -18,8 +18,6 @@ export default function DashboardScreen() {
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'date'>('name');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'paid' | 'overdue'>('all');
   const [showFilters, setShowFilters] = useState(false);
-  const themeColors = useThemeColors();
-  const colorScheme = useColorScheme();
   
   const summary = getLoanSummary();
 
@@ -81,18 +79,18 @@ export default function DashboardScreen() {
                   resizeMode="contain"
                 />
               </View>
-              <Text style={[styles.headerTitle, { color: themeColors.text }]}>Friend2Lend</Text>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Friend2Lend</Text>
             </View>
           ),
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: {
-            backgroundColor: themeColors.background,
+            backgroundColor: colors.background,
           },
           headerLeft: () => null,
         }}
       />
-      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
+      <View style={[commonStyles.container, { backgroundColor: colors.background }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -158,7 +156,7 @@ export default function DashboardScreen() {
 
           {/* Loans List Header */}
           <View style={styles.loansHeader}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Your Loans</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Loans</Text>
             <Pressable 
               style={styles.filterButton}
               onPress={() => setShowFilters(!showFilters)}
@@ -169,66 +167,66 @@ export default function DashboardScreen() {
 
           {/* Filters */}
           {showFilters && (
-            <View style={[commonStyles.card, styles.filtersCard, { backgroundColor: themeColors.card }]}>
-              <Text style={[styles.filterLabel, { color: themeColors.text }]}>Sort By</Text>
+            <View style={[commonStyles.card, styles.filtersCard, { backgroundColor: colors.card }]}>
+              <Text style={[styles.filterLabel, { color: colors.text }]}>Sort By</Text>
               <View style={styles.filterOptions}>
                 <Pressable
-                  style={[styles.filterOption, { borderColor: themeColors.border, backgroundColor: themeColors.card }, sortBy === 'name' && styles.filterOptionActive]}
+                  style={[styles.filterOption, { borderColor: colors.border, backgroundColor: colors.card }, sortBy === 'name' && styles.filterOptionActive]}
                   onPress={() => setSortBy('name')}
                 >
-                  <Text style={[styles.filterOptionText, { color: themeColors.textSecondary }, sortBy === 'name' && styles.filterOptionTextActive]}>
+                  <Text style={[styles.filterOptionText, { color: colors.textSecondary }, sortBy === 'name' && styles.filterOptionTextActive]}>
                     Name
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.filterOption, { borderColor: themeColors.border, backgroundColor: themeColors.card }, sortBy === 'amount' && styles.filterOptionActive]}
+                  style={[styles.filterOption, { borderColor: colors.border, backgroundColor: colors.card }, sortBy === 'amount' && styles.filterOptionActive]}
                   onPress={() => setSortBy('amount')}
                 >
-                  <Text style={[styles.filterOptionText, { color: themeColors.textSecondary }, sortBy === 'amount' && styles.filterOptionTextActive]}>
+                  <Text style={[styles.filterOptionText, { color: colors.textSecondary }, sortBy === 'amount' && styles.filterOptionTextActive]}>
                     Amount
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.filterOption, { borderColor: themeColors.border, backgroundColor: themeColors.card }, sortBy === 'date' && styles.filterOptionActive]}
+                  style={[styles.filterOption, { borderColor: colors.border, backgroundColor: colors.card }, sortBy === 'date' && styles.filterOptionActive]}
                   onPress={() => setSortBy('date')}
                 >
-                  <Text style={[styles.filterOptionText, { color: themeColors.textSecondary }, sortBy === 'date' && styles.filterOptionTextActive]}>
+                  <Text style={[styles.filterOptionText, { color: colors.textSecondary }, sortBy === 'date' && styles.filterOptionTextActive]}>
                     Date
                   </Text>
                 </Pressable>
               </View>
 
-              <Text style={[styles.filterLabel, { marginTop: 16, color: themeColors.text }]}>Filter By Status</Text>
+              <Text style={[styles.filterLabel, { marginTop: 16, color: colors.text }]}>Filter By Status</Text>
               <View style={styles.filterOptions}>
                 <Pressable
-                  style={[styles.filterOption, { borderColor: themeColors.border, backgroundColor: themeColors.card }, filterStatus === 'all' && styles.filterOptionActive]}
+                  style={[styles.filterOption, { borderColor: colors.border, backgroundColor: colors.card }, filterStatus === 'all' && styles.filterOptionActive]}
                   onPress={() => setFilterStatus('all')}
                 >
-                  <Text style={[styles.filterOptionText, { color: themeColors.textSecondary }, filterStatus === 'all' && styles.filterOptionTextActive]}>
+                  <Text style={[styles.filterOptionText, { color: colors.textSecondary }, filterStatus === 'all' && styles.filterOptionTextActive]}>
                     All
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.filterOption, { borderColor: themeColors.border, backgroundColor: themeColors.card }, filterStatus === 'active' && styles.filterOptionActive]}
+                  style={[styles.filterOption, { borderColor: colors.border, backgroundColor: colors.card }, filterStatus === 'active' && styles.filterOptionActive]}
                   onPress={() => setFilterStatus('active')}
                 >
-                  <Text style={[styles.filterOptionText, { color: themeColors.textSecondary }, filterStatus === 'active' && styles.filterOptionTextActive]}>
+                  <Text style={[styles.filterOptionText, { color: colors.textSecondary }, filterStatus === 'active' && styles.filterOptionTextActive]}>
                     Active
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.filterOption, { borderColor: themeColors.border, backgroundColor: themeColors.card }, filterStatus === 'paid' && styles.filterOptionActive]}
+                  style={[styles.filterOption, { borderColor: colors.border, backgroundColor: colors.card }, filterStatus === 'paid' && styles.filterOptionActive]}
                   onPress={() => setFilterStatus('paid')}
                 >
-                  <Text style={[styles.filterOptionText, { color: themeColors.textSecondary }, filterStatus === 'paid' && styles.filterOptionTextActive]}>
+                  <Text style={[styles.filterOptionText, { color: colors.textSecondary }, filterStatus === 'paid' && styles.filterOptionTextActive]}>
                     Paid
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.filterOption, { borderColor: themeColors.border, backgroundColor: themeColors.card }, filterStatus === 'overdue' && styles.filterOptionActive]}
+                  style={[styles.filterOption, { borderColor: colors.border, backgroundColor: colors.card }, filterStatus === 'overdue' && styles.filterOptionActive]}
                   onPress={() => setFilterStatus('overdue')}
                 >
-                  <Text style={[styles.filterOptionText, { color: themeColors.textSecondary }, filterStatus === 'overdue' && styles.filterOptionTextActive]}>
+                  <Text style={[styles.filterOptionText, { color: colors.textSecondary }, filterStatus === 'overdue' && styles.filterOptionTextActive]}>
                     Overdue
                   </Text>
                 </Pressable>
@@ -240,10 +238,10 @@ export default function DashboardScreen() {
           <View style={styles.loansSection}>
             {filteredAndSortedLoans.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+                <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
                   {filterStatus === 'all' ? 'No loans yet' : `No ${filterStatus} loans`}
                 </Text>
-                <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
+                <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>
                   {filterStatus === 'all' 
                     ? 'Tap the + button to add your first loan'
                     : 'Try changing the filter'}

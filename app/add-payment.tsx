@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { colors, commonStyles, buttonStyles, useThemeColors } from '@/styles/commonStyles';
+import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useLoans } from '@/hooks/useLoans';
 import { useSettings } from '@/hooks/useSettings';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -24,7 +24,6 @@ export default function AddPaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const loanId = params.loanId as string;
-  const themeColors = useThemeColors();
 
   const { addPayment, loans, getPaymentsForLoan } = useLoans();
   const { settings } = useSettings();
@@ -38,8 +37,8 @@ export default function AddPaymentScreen() {
 
   if (!loan) {
     return (
-      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
-        <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>Loan not found</Text>
+      <View style={[commonStyles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.textSecondary }]}>Loan not found</Text>
       </View>
     );
   }
@@ -115,16 +114,16 @@ export default function AddPaymentScreen() {
         }}
       />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
+        <View style={[commonStyles.container, { backgroundColor: colors.background }]}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
             {/* Loan Info */}
-            <View style={[commonStyles.card, styles.loanInfoCard, { backgroundColor: themeColors.card }]}>
-              <Text style={[styles.loanInfoLabel, { color: themeColors.textSecondary }]}>Payment for</Text>
-              <Text style={[styles.loanInfoValue, { color: themeColors.text }]}>{loan.borrowerName}</Text>
+            <View style={[commonStyles.card, styles.loanInfoCard, { backgroundColor: colors.card }]}>
+              <Text style={[styles.loanInfoLabel, { color: colors.textSecondary }]}>Payment for</Text>
+              <Text style={[styles.loanInfoValue, { color: colors.text }]}>{loan.borrowerName}</Text>
             </View>
 
             {/* Interest Warning */}
@@ -139,13 +138,13 @@ export default function AddPaymentScreen() {
                   />
                   <Text style={styles.warningTitle}>Interest Payment Overdue</Text>
                 </View>
-                <Text style={[styles.warningText, { color: themeColors.text }]}>
+                <Text style={[styles.warningText, { color: colors.text }]}>
                   {interestStatus.monthsOverdue} month{interestStatus.monthsOverdue > 1 ? 's' : ''} of interest unpaid
                 </Text>
                 <Text style={styles.warningAmount}>
                   Amount due: {settings.currencySymbol}{interestStatus.amountDue.toLocaleString()}
                 </Text>
-                <Text style={[styles.warningSubtext, { color: themeColors.textSecondary }]}>
+                <Text style={[styles.warningSubtext, { color: colors.textSecondary }]}>
                   Monthly interest: {settings.currencySymbol}{monthlyInterest.toLocaleString()}
                 </Text>
               </View>
@@ -153,12 +152,12 @@ export default function AddPaymentScreen() {
 
             {/* Payment Type */}
             <View style={styles.inputGroup}>
-              <Text style={[commonStyles.label, { color: themeColors.text }]}>Payment Type</Text>
+              <Text style={[commonStyles.label, { color: colors.text }]}>Payment Type</Text>
               <View style={styles.paymentTypeContainer}>
                 <Pressable
                   style={[
                     styles.paymentTypeButton,
-                    { backgroundColor: themeColors.card, borderColor: themeColors.border },
+                    { backgroundColor: colors.card, borderColor: colors.border },
                     paymentType === 'principal' && styles.paymentTypeButtonActive,
                   ]}
                   onPress={() => setPaymentType('principal')}
@@ -167,12 +166,12 @@ export default function AddPaymentScreen() {
                     ios_icon_name="banknote" 
                     android_material_icon_name="payments" 
                     size={20} 
-                    color={paymentType === 'principal' ? colors.primary : themeColors.textSecondary} 
+                    color={paymentType === 'principal' ? colors.primary : colors.textSecondary} 
                   />
                   <Text
                     style={[
                       styles.paymentTypeText,
-                      { color: themeColors.textSecondary },
+                      { color: colors.textSecondary },
                       paymentType === 'principal' && styles.paymentTypeTextActive,
                     ]}
                   >
@@ -182,7 +181,7 @@ export default function AddPaymentScreen() {
                 <Pressable
                   style={[
                     styles.paymentTypeButton,
-                    { backgroundColor: themeColors.card, borderColor: themeColors.border },
+                    { backgroundColor: colors.card, borderColor: colors.border },
                     paymentType === 'interest' && styles.paymentTypeButtonActive,
                   ]}
                   onPress={() => setPaymentType('interest')}
@@ -191,12 +190,12 @@ export default function AddPaymentScreen() {
                     ios_icon_name="percent" 
                     android_material_icon_name="percent" 
                     size={20} 
-                    color={paymentType === 'interest' ? colors.primary : themeColors.textSecondary} 
+                    color={paymentType === 'interest' ? colors.primary : colors.textSecondary} 
                   />
                   <Text
                     style={[
                       styles.paymentTypeText,
-                      { color: themeColors.textSecondary },
+                      { color: colors.textSecondary },
                       paymentType === 'interest' && styles.paymentTypeTextActive,
                     ]}
                   >
@@ -208,11 +207,11 @@ export default function AddPaymentScreen() {
 
             {/* Amount */}
             <View style={styles.inputGroup}>
-              <Text style={[commonStyles.label, { color: themeColors.text }]}>
+              <Text style={[commonStyles.label, { color: colors.text }]}>
                 Payment Amount ({settings.currencySymbol})
               </Text>
               <TextInput
-                style={[commonStyles.input, { backgroundColor: themeColors.card, borderColor: themeColors.border, color: themeColors.text }]}
+                style={[commonStyles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
                 value={amount}
                 onChangeText={(text) => {
                   // Only allow whole numbers
@@ -220,7 +219,7 @@ export default function AddPaymentScreen() {
                   setAmount(cleaned);
                 }}
                 placeholder="0"
-                placeholderTextColor={themeColors.textSecondary}
+                placeholderTextColor={colors.textSecondary}
                 keyboardType="number-pad"
                 autoFocus
               />
@@ -238,7 +237,7 @@ export default function AddPaymentScreen() {
 
             {/* Date */}
             <View style={styles.inputGroup}>
-              <Text style={[commonStyles.label, { color: themeColors.text }]}>Payment Date</Text>
+              <Text style={[commonStyles.label, { color: colors.text }]}>Payment Date</Text>
               {Platform.OS === 'ios' ? (
                 <View style={styles.datePickerWrapper}>
                   <DateTimePicker
@@ -253,13 +252,13 @@ export default function AddPaymentScreen() {
               ) : (
                 <>
                   <Pressable
-                    style={[styles.dateButton, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+                    style={[styles.dateButton, { backgroundColor: colors.card, borderColor: colors.border }]}
                     onPress={() => {
                       console.log('Opening date picker with date:', date.toISOString());
                       setShowDatePicker(true);
                     }}
                   >
-                    <Text style={[styles.dateButtonText, { color: themeColors.text }]}>
+                    <Text style={[styles.dateButtonText, { color: colors.text }]}>
                       {date.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -288,13 +287,13 @@ export default function AddPaymentScreen() {
 
             {/* Note */}
             <View style={styles.inputGroup}>
-              <Text style={[commonStyles.label, { color: themeColors.text }]}>Note (Optional)</Text>
+              <Text style={[commonStyles.label, { color: colors.text }]}>Note (Optional)</Text>
               <TextInput
-                style={[commonStyles.input, styles.noteInput, { backgroundColor: themeColors.card, borderColor: themeColors.border, color: themeColors.text }]}
+                style={[commonStyles.input, styles.noteInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
                 value={note}
                 onChangeText={setNote}
                 placeholder="e.g., Bank transfer, Cash payment..."
-                placeholderTextColor={themeColors.textSecondary}
+                placeholderTextColor={colors.textSecondary}
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"

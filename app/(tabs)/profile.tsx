@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { colors, commonStyles, useThemeColors } from '@/styles/commonStyles';
+import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Print from 'expo-print';
@@ -21,7 +21,6 @@ export default function SettingsScreen() {
   const { refreshData, loans, payments, getPaymentsForLoan } = useLoans();
   const [securityEnabled, setSecurityEnabled] = useState(false);
   const isNavigatingRef = useRef(false);
-  const themeColors = useThemeColors();
 
   useEffect(() => {
     checkSecurityStatus();
@@ -527,72 +526,72 @@ export default function SettingsScreen() {
   const currency = getCurrencyByCode(settings.currency);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={['top']}>
-      <View style={[commonStyles.container, { backgroundColor: themeColors.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={[commonStyles.container, { backgroundColor: colors.background }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {/* Currency Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Currency</Text>
-            <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Currency</Text>
+            <View style={[commonStyles.card, { backgroundColor: colors.card }]}>
               <Pressable style={styles.settingItem} onPress={handleCurrencySettings}>
                 <View style={styles.settingLeft}>
                   <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
                     <IconSymbol name="dollarsign.circle" size={24} color={colors.secondary} />
                   </View>
                   <View>
-                    <Text style={[styles.settingTitle, { color: themeColors.text }]}>Default Currency</Text>
-                    <Text style={[styles.settingSubtitle, { color: themeColors.textSecondary }]}>
+                    <Text style={[styles.settingTitle, { color: colors.text }]}>Default Currency</Text>
+                    <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
                       {currency?.name || 'Euro'} ({settings.currencySymbol})
                     </Text>
                   </View>
                 </View>
-                <IconSymbol name="chevron.right" size={20} color={themeColors.textSecondary} />
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
               </Pressable>
             </View>
           </View>
 
           {/* Security Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Security</Text>
-            <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Security</Text>
+            <View style={[commonStyles.card, { backgroundColor: colors.card }]}>
               <Pressable style={styles.settingItem} onPress={handleSecuritySettings}>
                 <View style={styles.settingLeft}>
                   <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
                     <IconSymbol name="lock.fill" size={24} color={colors.primary} />
                   </View>
                   <View>
-                    <Text style={[styles.settingTitle, { color: themeColors.text }]}>Password Lock</Text>
-                    <Text style={[styles.settingSubtitle, { color: themeColors.textSecondary }]}>
+                    <Text style={[styles.settingTitle, { color: colors.text }]}>Password Lock</Text>
+                    <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
                       {securityEnabled ? 'Password protection enabled' : 'Protect your app with a password'}
                     </Text>
                   </View>
                 </View>
-                <IconSymbol name="chevron.right" size={20} color={themeColors.textSecondary} />
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
               </Pressable>
             </View>
           </View>
 
           {/* Data Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Data Management</Text>
-            <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Data Management</Text>
+            <View style={[commonStyles.card, { backgroundColor: colors.card }]}>
               <Pressable style={styles.settingItem} onPress={handleExportData}>
                 <View style={styles.settingLeft}>
                   <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
                     <IconSymbol name="square.and.arrow.up" size={24} color={colors.secondary} />
                   </View>
                   <View>
-                    <Text style={[styles.settingTitle, { color: themeColors.text }]}>Export Data</Text>
-                    <Text style={[styles.settingSubtitle, { color: themeColors.textSecondary }]}>Export loans as PDF or CSV</Text>
+                    <Text style={[styles.settingTitle, { color: colors.text }]}>Export Data</Text>
+                    <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>Export loans as PDF or CSV</Text>
                   </View>
                 </View>
-                <IconSymbol name="chevron.right" size={20} color={themeColors.textSecondary} />
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
               </Pressable>
 
-              <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
               <Pressable style={styles.settingItem} onPress={handleClearData}>
                 <View style={styles.settingLeft}>
@@ -601,51 +600,51 @@ export default function SettingsScreen() {
                   </View>
                   <View>
                     <Text style={[styles.settingTitle, { color: colors.error }]}>Clear All Data</Text>
-                    <Text style={[styles.settingSubtitle, { color: themeColors.textSecondary }]}>Delete all loans and payments</Text>
+                    <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>Delete all loans and payments</Text>
                   </View>
                 </View>
-                <IconSymbol name="chevron.right" size={20} color={themeColors.textSecondary} />
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
               </Pressable>
             </View>
           </View>
 
           {/* Legal Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Legal</Text>
-            <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Legal</Text>
+            <View style={[commonStyles.card, { backgroundColor: colors.card }]}>
               <Pressable style={styles.settingItem} onPress={handlePrivacyPolicy}>
                 <View style={styles.settingLeft}>
                   <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
                     <IconSymbol name="hand.raised" size={24} color={colors.primary} />
                   </View>
                   <View>
-                    <Text style={[styles.settingTitle, { color: themeColors.text }]}>Privacy Policy</Text>
-                    <Text style={[styles.settingSubtitle, { color: themeColors.textSecondary }]}>How we handle your data</Text>
+                    <Text style={[styles.settingTitle, { color: colors.text }]}>Privacy Policy</Text>
+                    <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>How we handle your data</Text>
                   </View>
                 </View>
-                <IconSymbol name="chevron.right" size={20} color={themeColors.textSecondary} />
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
               </Pressable>
             </View>
           </View>
 
           {/* About Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>About</Text>
-            <View style={[commonStyles.card, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
+            <View style={[commonStyles.card, { backgroundColor: colors.card }]}>
               <View style={styles.aboutItem}>
-                <Text style={[styles.aboutLabel, { color: themeColors.text }]}>Version</Text>
-                <Text style={[styles.aboutValue, { color: themeColors.textSecondary }]}>1.0.0</Text>
+                <Text style={[styles.aboutLabel, { color: colors.text }]}>Version</Text>
+                <Text style={[styles.aboutValue, { color: colors.textSecondary }]}>1.0.0</Text>
               </View>
-              <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <View style={styles.aboutItem}>
-                <Text style={[styles.aboutLabel, { color: themeColors.text }]}>Storage</Text>
-                <Text style={[styles.aboutValue, { color: themeColors.textSecondary }]}>Local Only</Text>
+                <Text style={[styles.aboutLabel, { color: colors.text }]}>Storage</Text>
+                <Text style={[styles.aboutValue, { color: colors.textSecondary }]}>Local Only</Text>
               </View>
             </View>
           </View>
 
           {/* Info Text */}
-          <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
             Friend2Lend stores all data locally on your device. Use the export feature to backup your data.
           </Text>
         </ScrollView>
