@@ -295,7 +295,7 @@ export default function LoanDetailScreen() {
                   />
                 </View>
               )}
-              <View style={[styles.editIconContainer, { backgroundColor: colors.card }]}>
+              <View style={[styles.editIconContainer, { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.primary }]}>
                 <IconSymbol 
                   ios_icon_name="pencil.circle.fill" 
                   android_material_icon_name="edit" 
@@ -309,7 +309,7 @@ export default function LoanDetailScreen() {
               <IconSymbol 
                 ios_icon_name="pencil" 
                 android_material_icon_name="edit" 
-                size={20} 
+                size={22} 
                 color={colors.primary} 
               />
             </Pressable>
@@ -486,7 +486,7 @@ export default function LoanDetailScreen() {
                             <IconSymbol 
                               ios_icon_name="trash.fill" 
                               android_material_icon_name="delete" 
-                              size={24} 
+                              size={26} 
                               color={colors.error} 
                             />
                           </Pressable>
@@ -519,7 +519,7 @@ export default function LoanDetailScreen() {
                             <IconSymbol 
                               ios_icon_name="trash.fill" 
                               android_material_icon_name="delete" 
-                              size={24} 
+                              size={26} 
                               color={colors.error} 
                             />
                           </Pressable>
@@ -639,6 +639,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
     borderRadius: 14,
+    padding: 2,
   },
   nameEditButton: {
     flexDirection: 'row',

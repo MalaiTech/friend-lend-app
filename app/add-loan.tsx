@@ -221,11 +221,21 @@ export default function AddLoanScreen() {
                 <Image source={{ uri: borrowerPhoto }} style={styles.photo} />
               ) : (
                 <View style={[styles.photoPlaceholder, { backgroundColor: colors.border }]}>
-                  <IconSymbol name="person.fill" size={40} color={colors.textSecondary} />
+                  <IconSymbol 
+                    ios_icon_name="person.fill" 
+                    android_material_icon_name="person" 
+                    size={40} 
+                    color={colors.textSecondary} 
+                  />
                 </View>
               )}
-              <View style={[styles.editIconContainer, { backgroundColor: colors.card }]}>
-                <IconSymbol name="pencil.circle.fill" size={32} color={colors.primary} />
+              <View style={[styles.editIconContainer, { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.primary }]}>
+                <IconSymbol 
+                  ios_icon_name="pencil.circle.fill" 
+                  android_material_icon_name="edit" 
+                  size={32} 
+                  color={colors.primary} 
+                />
               </View>
             </Pressable>
             <Text style={[styles.photoHint, { color: colors.textSecondary }]}>Tap to add photo</Text>
@@ -243,7 +253,12 @@ export default function AddLoanScreen() {
                 placeholderTextColor={colors.textSecondary}
               />
               <Pressable style={[styles.contactButton, { borderColor: colors.border, backgroundColor: colors.card }]} onPress={handleSelectFromContacts}>
-                <IconSymbol name="person.crop.circle.badge.plus" size={28} color={colors.primary} />
+                <IconSymbol 
+                  ios_icon_name="person.crop.circle.badge.plus" 
+                  android_material_icon_name="person_add" 
+                  size={28} 
+                  color={colors.primary} 
+                />
               </Pressable>
             </View>
           </View>
@@ -317,7 +332,12 @@ export default function AddLoanScreen() {
                       day: 'numeric',
                     })}
                   </Text>
-                  <IconSymbol name="calendar" size={20} color={colors.primary} />
+                  <IconSymbol 
+                    ios_icon_name="calendar" 
+                    android_material_icon_name="calendar_today" 
+                    size={20} 
+                    color={colors.primary} 
+                  />
                 </Pressable>
                 {showStartDatePicker && (
                   <DateTimePicker
@@ -387,6 +407,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
     borderRadius: 16,
+    padding: 2,
   },
   photoHint: {
     fontSize: 13,
