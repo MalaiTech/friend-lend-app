@@ -229,11 +229,11 @@ export default function AddLoanScreen() {
                   />
                 </View>
               )}
-              <View style={[styles.editIconContainer, { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.primary }]}>
+              <View style={styles.editIconContainer}>
                 <IconSymbol 
                   ios_icon_name="pencil.circle.fill" 
                   android_material_icon_name="edit" 
-                  size={32} 
+                  size={36} 
                   color={colors.primary} 
                 />
               </View>
@@ -404,10 +404,15 @@ const styles = StyleSheet.create({
   },
   editIconContainer: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    borderRadius: 16,
-    padding: 2,
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 4,
+    borderWidth: 3,
+    borderColor: colors.primary,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.2)',
+    elevation: 5,
   },
   photoHint: {
     fontSize: 13,

@@ -295,23 +295,25 @@ export default function LoanDetailScreen() {
                   />
                 </View>
               )}
-              <View style={[styles.editIconContainer, { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.primary }]}>
+              <View style={styles.editIconContainer}>
                 <IconSymbol 
                   ios_icon_name="pencil.circle.fill" 
                   android_material_icon_name="edit" 
-                  size={28} 
+                  size={32} 
                   color={colors.primary} 
                 />
               </View>
             </Pressable>
             <Pressable onPress={handleEditBorrower} style={styles.nameEditButton}>
               <Text style={[styles.borrowerNameLarge, { color: colors.text }]}>{loan.borrowerName}</Text>
-              <IconSymbol 
-                ios_icon_name="pencil" 
-                android_material_icon_name="edit" 
-                size={22} 
-                color={colors.primary} 
-              />
+              <View style={styles.nameEditIconContainer}>
+                <IconSymbol 
+                  ios_icon_name="pencil" 
+                  android_material_icon_name="edit" 
+                  size={24} 
+                  color={colors.primary} 
+                />
+              </View>
             </Pressable>
             <View
               style={[
@@ -480,13 +482,13 @@ export default function LoanDetailScreen() {
                         <View style={styles.paymentActions}>
                           <Pressable 
                             onPress={() => handleDeletePayment(payment.id)} 
-                            style={styles.actionIcon}
+                            style={styles.deleteIconContainer}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                           >
                             <IconSymbol 
                               ios_icon_name="trash.fill" 
                               android_material_icon_name="delete" 
-                              size={26} 
+                              size={28} 
                               color={colors.error} 
                             />
                           </Pressable>
@@ -513,13 +515,13 @@ export default function LoanDetailScreen() {
                         <View style={styles.paymentActions}>
                           <Pressable 
                             onPress={() => handleDeletePayment(payment.id)} 
-                            style={styles.actionIcon}
+                            style={styles.deleteIconContainer}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                           >
                             <IconSymbol 
                               ios_icon_name="trash.fill" 
                               android_material_icon_name="delete" 
-                              size={26} 
+                              size={28} 
                               color={colors.error} 
                             />
                           </Pressable>
@@ -636,20 +638,34 @@ const styles = StyleSheet.create({
   },
   editIconContainer: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    borderRadius: 14,
-    padding: 2,
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 4,
+    borderWidth: 3,
+    borderColor: colors.primary,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.2)',
+    elevation: 5,
   },
   nameEditButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
     marginBottom: 8,
   },
   borrowerNameLarge: {
     fontSize: 24,
     fontWeight: '700',
+  },
+  nameEditIconContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 6,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.15)',
+    elevation: 4,
   },
   statusBadge: {
     paddingHorizontal: 16,
@@ -777,8 +793,14 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'center',
   },
-  actionIcon: {
-    padding: 4,
+  deleteIconContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 6,
+    borderWidth: 2,
+    borderColor: colors.error,
+    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.15)',
+    elevation: 4,
   },
   deleteButton: {
     backgroundColor: colors.error,
