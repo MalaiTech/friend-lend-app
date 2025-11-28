@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "Friend2Lend",
@@ -9,7 +10,7 @@
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png",
+      "image": "./assets/images/ab4803b4-93b1-436f-91c8950562eb.png",
       "resizeMode": "contain",
       "backgroundColor": "#4A9FD8"
     },
@@ -18,7 +19,7 @@
       "bundleIdentifier": "com.friend2lend.app",
       "buildNumber": "1",
       "jsEngine": "hermes",
-      "icon": "./assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png",
+      "icon": "./assets/images/ab4803b4-93b1-436f-91c8950562eb.png",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSContactsUsageDescription": "Friend2Lend needs access to your contacts to help you quickly select borrowers when creating loans.",
@@ -26,8 +27,7 @@
         "NSPhotoLibraryUsageDescription": "Friend2Lend needs access to your photo library to let you add photos of borrowers.",
         "NSCameraUsageDescription": "Friend2Lend needs access to your camera to let you take photos of borrowers.",
         "NSCalendarsUsageDescription": "Friend2Lend can add loan due dates to your calendar to help you track repayments.",
-        "NSRemindersUsageDescription": "Friend2Lend can create reminders for loan due dates.",
-        "NSUserTrackingUsageDescription": "This app does not track you."
+        "NSRemindersUsageDescription": "Friend2Lend can create reminders for loan due dates."
       },
       "config": {
         "usesNonExemptEncryption": false
@@ -52,7 +52,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png",
+      "favicon": "./assets/images/ab4803b4-93b1-436f-91c8950562eb.png",
       "bundler": "metro"
     },
     "plugins": [
