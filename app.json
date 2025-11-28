@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/ab4803b4-93b1-436f-91c8950562eb.png",
+      "image": "./assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png",
       "resizeMode": "contain",
       "backgroundColor": "#4A9FD8"
     },
@@ -19,7 +19,7 @@
       "bundleIdentifier": "com.friend2lend.app",
       "buildNumber": "1",
       "jsEngine": "hermes",
-      "icon": "./assets/images/ab4803b4-93b1-436f-91c8950562eb.png",
+      "icon": "./assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSContactsUsageDescription": "Friend2Lend needs access to your contacts to help you quickly select borrowers when creating loans.",
@@ -52,7 +52,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/ab4803b4-93b1-436f-91c8950562eb.png",
+      "favicon": "./assets/images/ab4803b4-93b1-436f-91c4-71c8950562eb.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -85,6 +85,5 @@
     "extra": {
       "router": {}
     }
-  },
-  "scheme": "Friend2Lend"
+  }
 }
